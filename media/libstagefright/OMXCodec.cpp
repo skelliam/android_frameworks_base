@@ -234,7 +234,7 @@ static sp<MediaSource> InstantiateSoftwareCodec(
 #undef FACTORY_REF
 #undef FACTORY_CREATE
 
-#if defined(OMAP_ENHANCEMENT) || defined (USE_TI_COMPAT)
+#if defined(OMAP_ENHANCEMENT) || defined(OMAP_COMPAT)
 #ifdef TARGET_OMAP4
 //Enable Ducati Codecs for Video, PV SW codecs for Audio
 static const CodecInfo kDecoderInfo[] = {
@@ -311,7 +311,7 @@ static const CodecInfo kEncoderInfo[] = {
 static const CodecInfo kDecoderInfo[] = {
     { MEDIA_MIMETYPE_IMAGE_JPEG, "OMX.TI.JPEG.decoder" },
     { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.Nvidia.mp3.decoder" },
-//    { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.TI.MP3.decode" },
+    { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.TI.MP3.decode" },
     { MEDIA_MIMETYPE_AUDIO_MPEG, "MP3Decoder" },
 //    { MEDIA_MIMETYPE_AUDIO_MPEG, "OMX.PV.mp3dec" },
 //    { MEDIA_MIMETYPE_AUDIO_AMR_NB, "OMX.TI.AMR.decode" },
@@ -404,7 +404,8 @@ static const CodecInfo kEncoderInfo[] = {
 #endif
 #endif
 
-#if !(defined(OMAP_ENHANCEMENT)) ||  !(defined(USE_TI_COMPAT))
+#ifndef OMAP_ENHANCEMENT
+// the new omap one is defined in .h
 struct OMXCodecObserver : public BnOMXObserver {
     OMXCodecObserver() {
     }
@@ -542,7 +543,7 @@ static int CompareSoftwareCodecsFirst(
 }
 
 // static
-#if defined(OMAP_ENHANCEMENT) || defined (USE_TI_COMPAT)
+#if defined(OMAP_ENHANCEMENT) || defined(OMAP_COMPAT)
 uint32_t OMXCodec::getComponentQuirks(const char *componentName,bool isEncoder, uint32_t flags) {
 #else
 uint32_t OMXCodec::getComponentQuirks(const char *componentName, bool isEncoder) {
@@ -563,7 +564,7 @@ uint32_t OMXCodec::getComponentQuirks(const char *componentName, bool isEncoder)
     if (!strcmp(componentName, "OMX.TI.MP3.decode")) {
         quirks |= kNeedsFlushBeforeDisable;
         quirks |= kDecoderLiesAboutNumberOfChannels;
-#if defined(OMAP_ENHANCEMENT) || defined (USE_TI_COMPAT)
+#if defined(OMAP_ENHANCEMENT) || defined(OMAP_COMPAT)
         quirks |= kSupportsMultipleFramesPerInputBuffer;
         quirks |= kDecoderCantRenderSmallClips;
 #endif
@@ -573,7 +574,7 @@ uint32_t OMXCodec::getComponentQuirks(const char *componentName, bool isEncoder)
         quirks |= kRequiresFlushCompleteEmulation;
         quirks |= kSupportsMultipleFramesPerInputBuffer;
     }
-#if defined(OMAP_ENHANCEMENT) || defined (USE_TI_COMPAT)
+#if defined(OMAP_ENHANCEMENT) || defined(OMAP_COMPAT)
     if (!strcmp(componentName, "OMX.TI.WMA.decode")) {
         quirks |= kNeedsFlushBeforeDisable;
         quirks |= kRequiresFlushCompleteEmulation;
@@ -598,6 +599,12 @@ uint32_t OMXCodec::getComponentQuirks(const char *componentName, bool isEncoder)
     if (!strcmp(componentName, "OMX.PV.aacdec")) {
         quirks |= kNeedsFlushBeforeDisable;
         quirks |= kDecoderNeedsPortReconfiguration;
+    }
+#else
+    if (!strcmp(componentName, "OMX.TI.WMA.decode")) {
+        quirks |= kNeedsFlushBeforeDisable;
+        quirks |= kRequiresFlushCompleteEmulation;
+        quirks |= kDecoderLiesAboutNumberOfChannels;
     }
 #endif
     if (!strncmp(componentName, "OMX.qcom.video.encoder.", 23)) {
@@ -629,7 +636,7 @@ uint32_t OMXCodec::getComponentQuirks(const char *componentName, bool isEncoder)
         quirks |= kDefersOutputBufferAllocation;
         quirks |= kDoesNotRequireMemcpyOnOutputPort;
     }
-#if defined(OMAP_ENHANCEMENT) || defined (USE_TI_COMPAT)
+#if defined(OMAP_ENHANCEMENT) || defined(OMAP_COMPAT)
     if (!strcmp(componentName, "OMX.TI.Video.Decoder") ||
             !strcmp(componentName, "OMX.TI.720P.Decoder")) {
         // TI Video Decoder and TI 720p Decoder must use buffers allocated
@@ -684,7 +691,7 @@ uint32_t OMXCodec::getComponentQuirks(const char *componentName, bool isEncoder)
         }
 #endif
     }
-#if !(defined(OMAP_ENHANCEMENT)) || !(defined(USE_TI_COMPAT))
+#if !(defined(OMAP_ENHANCEMENT) || defined(OMAP_COMPAT))
     if (!strcmp(componentName, "OMX.TI.Video.Decoder")) {
         quirks |= kInputBufferSizesAreBogus;
     }
@@ -792,13 +799,13 @@ sp<MediaSource> OMXCodec::Create(
         }
 
         LOGV("Attempting to allocate OMX node '%s'", componentName);
-#ifdef OMAP_ENHANCEMENT
-uint32_t quirks = getComponentQuirks(componentName, createEncoder, flags);
+#if defined(OMAP_ENHANCEMENT) || defined(OMAP_COMPAT)
+        uint32_t quirks = getComponentQuirks(componentName, createEncoder, flags);
 #else
         uint32_t quirks = getComponentQuirks(componentName, createEncoder);
 #endif
 
-#ifdef USE_TI_COMPAT
+#ifdef OMAP_COMPAT
         if (!strcmp(componentName, "OMX.TI.Video.Decoder")) {
             int32_t width, height;
             bool success = meta->findInt32(kKeyWidth, &width);
@@ -898,7 +905,7 @@ sp<MediaSource> OMXCodec::Create(
         if (err == OK) {
             LOGV("Successfully allocated OMX node '%s'", componentName);
 
-#ifdef TARGET_OMAP4
+#if defined(OMAP_ENHANCEMENT) || defined(OMAP_COMPAT)
             sp<OMXCodec> codec = new OMXCodec(
                     omx, node, getComponentQuirks(componentName,createEncoder,flags),
                     createEncoder, mime, componentName,
@@ -1065,7 +1072,8 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta, uint32_t flags) {
                 LOGE("Profile and/or level exceed the decoder's capabilities.");
                 return ERROR_UNSUPPORTED;
             }
-#if defined(OMAP_ENHANCEMENT) || defined (USE_TI_COMPAT)
+
+#if defined(OMAP_ENHANCEMENT) || defined(OMAP_COMPAT)
             int32_t width, height;
             bool success = meta->findInt32(kKeyWidth, &width);
             success = success && meta->findInt32(kKeyHeight, &height);
@@ -1144,7 +1152,7 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta, uint32_t flags) {
     if (mIsEncoder) {
         CHECK(meta->findInt32(kKeyBitRate, &bitRate));
 
-#if defined(OMAP_ENHANCEMENT) && defined(TARGET_OMAP3) || defined (USE_TI_COMPAT)
+#if (defined(OMAP_ENHANCEMENT) && defined(TARGET_OMAP3)) || defined(OMAP_COMPAT)
         if (!strcmp(mComponentName, "OMX.TI.Video.encoder")) {
             int32_t width, height;
             bool success = meta->findInt32(kKeyWidth, &width);
@@ -1668,12 +1676,8 @@ void OMXCodec::setVideoInputFormat(
         compressionFormat = OMX_VIDEO_CodingMPEG4;
     } else if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_H263, mime)) {
         compressionFormat = OMX_VIDEO_CodingH263;
-#ifdef OMAP_ENHANCEMENT
-    }
-    else if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_WMV, mime))
-    {
+    } else if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_WMV, mime)) {
         compressionFormat = OMX_VIDEO_CodingWMV;
-#endif
     } else {
         LOGE("Not a supported video mime type: %s", mime);
         CHECK(!"Should not be here. Not a supported video mime type.");
@@ -2455,7 +2459,7 @@ status_t OMXCodec::setVideoOutputFormat(
         compressionFormat = OMX_VIDEO_CodingMPEG4;
     } else if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_H263, mime)) {
         compressionFormat = OMX_VIDEO_CodingH263;
-#if defined(OMAP_ENHANCEMENT) || defined (USE_TI_COMPAT)
+#if defined(OMAP_ENHANCEMENT) || defined(OMAP_COMPAT)
 #if defined(TARGET_OMAP4)
     } else if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_VP6, mime)) {
         compressionFormat = (OMX_VIDEO_CODINGTYPE)OMX_VIDEO_CodingVP6;
@@ -2759,13 +2763,10 @@ void OMXCodec::setComponentRole(
             "video_decoder.mpeg4", "video_encoder.mpeg4" },
         { MEDIA_MIMETYPE_VIDEO_H263,
             "video_decoder.h263", "video_encoder.h263" },
-#if defined(OMAP_ENHANCEMENT) || defined (USE_TI_COMPAT)
-#if defined(TARGET_OMAP4)
         { MEDIA_MIMETYPE_VIDEO_VP6,
             "video_decoder.vp6", NULL },
         { MEDIA_MIMETYPE_VIDEO_VP7,
             "video_decoder.vp7", NULL },
-#endif
         { MEDIA_MIMETYPE_VIDEO_WMV,
             "video_decoder.wmv", "video_encoder.wmv" },
         { MEDIA_MIMETYPE_AUDIO_WMA,
@@ -2774,7 +2775,6 @@ void OMXCodec::setComponentRole(
             "audio_decoder.wmapro", "audio_encoder.wmapro" },
         { MEDIA_MIMETYPE_AUDIO_WMALSL,
             "audio_decoder.wmalsl", "audio_encoder.wmalsl" },
-#endif
     };
 
     static const size_t kNumMimeToRole =
@@ -3722,7 +3722,7 @@ void OMXCodec::onStateChange(OMX_STATETYPE newState) {
 
         case OMX_StateLoaded:
         {
-#ifdef OMAP_ENHANCEMENT
+#if defined(OMAP_ENHANCEMENT) || defined(OMAP_COMPAT)
             if(LOADED == mState)
             {
                 break;
