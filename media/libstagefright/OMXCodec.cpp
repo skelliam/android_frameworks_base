@@ -3956,7 +3956,8 @@ void OMXCodec::drainInputBuffers() {
         //and camera will not give any more unless we give release
         if (mIsEncoder && (mQuirks & kAvoidMemcopyInputRecordingFrames) && (i == 4))
             break;
-#elif defined(OMAP_ENHANCEMENT)
+#endif
+#ifdef OMAP_ENHANCEMENT
         if (!(*buffers)[i].mOwnedByComponent) {
             drainInputBuffer(&buffers->editItemAt(i));
         }
@@ -4840,9 +4841,7 @@ void OMXCodec::setBuffers(Vector< sp<IMemory> > mBufferAddresses, bool portRecon
 status_t OMXCodec::read(
         MediaBuffer **buffer, const ReadOptions *options) {
 
-#if defined(TARGET_OMAP4) && defined(OMAP_ENHANCEMENT)
     status_t wait_status = 0;
-#endif
 
     *buffer = NULL;
 
@@ -4927,13 +4926,13 @@ status_t OMXCodec::read(
         while (mSeekTimeUs >= 0) {
 #if defined(TARGET_OMAP4) && defined(OMAP_ENHANCEMENT)
             wait_status = (mNSecsToWait == 0) ? mBufferFilled.wait(mLock) : mBufferFilled.waitRelative(mLock, mNSecsToWait);
+#else
+            wait_status = mBufferFilled.waitRelative(mLock, 3000000000);
+#endif
             if (wait_status) {
                 LOGE("Timed out waiting for the buffer! Line %d", __LINE__);
                 return UNKNOWN_ERROR;
             }
-#else
-            mBufferFilled.wait(mLock);
-#endif
         }
     }
 
@@ -5010,7 +5009,11 @@ status_t OMXCodec::read(
 
 #else
     while (mState != ERROR && !mNoMoreOutputData && mFilledBuffers.empty()) {
-        mBufferFilled.wait(mLock);
+        wait_status = mBufferFilled.waitRelative(mLock, 3000000000);
+        if (wait_status) {
+            LOGE("Timed out waiting for the buffer! Line %d", __LINE__);
+            return UNKNOWN_ERROR;
+        }
     }
 #endif
 
