@@ -186,7 +186,7 @@ status_t AudioRecord::set(
         return BAD_VALUE;
     }
 
-    int channelCount = AudioSystem::popCount((channels) & (AudioSystem::CHANNEL_IN_STEREO | AudioSystem::CHANNEL_IN_MONO));
+    int channelCount = AudioSystem::popCount(channels);
 
     audio_io_handle_t input = AudioSystem::getInput(inputSource,
                                     sampleRate, format, channels, (AudioSystem::audio_in_acoustics)flags);
@@ -617,6 +617,8 @@ ssize_t AudioRecord::read(void* buffer, size_t userSize)
             // out of buffers, return #bytes written
             if (err == status_t(NO_MORE_BUFFERS))
                 break;
+            if (err == status_t(TIMED_OUT))
+                err = 0;
             return ssize_t(err);
         }
 
