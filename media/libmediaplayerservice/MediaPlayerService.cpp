@@ -654,15 +654,16 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
 {
     int r_size;
     int file_format;
-    char buf[2048];
+    union {
+        char buf[2048];
+        long bufl[];
+    };
+
     lseek(fd, offset, SEEK_SET);
     r_size = read(fd, buf, sizeof(buf));
-
-    lseek(fd, offset, SEEK_SET);
-    read(fd, buf, sizeof(buf));
     lseek(fd, offset, SEEK_SET);
 
-    long ident = *((long*)buf);
+    long ident = *bufl;
 
     // Ogg vorbis?
     if (ident == 0x5367674f) // 'OggS'
