@@ -31,6 +31,8 @@
 
 using namespace android;
 
+#undef HAVE_ARM_TLS_REGISTER
+
 // ----------------------------------------------------------------------------
 // Actual GL entry-points
 // ----------------------------------------------------------------------------
@@ -39,7 +41,7 @@ using namespace android;
 #undef CALL_GL_API
 #undef CALL_GL_API_RETURN
 
-#define DEBUG_CALL_GL_API 0
+#define DEBUG_CALL_GL_API 1
 
 #if USE_FAST_TLS_KEY
 
