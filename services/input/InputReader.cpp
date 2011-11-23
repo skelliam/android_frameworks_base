@@ -957,6 +957,10 @@ void InputDevice::process(const RawEvent* rawEvents, size_t count) {
             mDropUntilNextSync = true;
             reset(rawEvent->when);
         } else {
+<<<<<<< HEAD
+=======
+
+>>>>>>> tpruvot_ics/ics
             if (!numMappers) continue;
             InputMapper* mapper = NULL;
 
@@ -966,9 +970,18 @@ void InputDevice::process(const RawEvent* rawEvents, size_t count) {
                 touched = (0 != z_data);
 
             }
+<<<<<<< HEAD
             else if (rawEvent->scanCode == ABS_MT_POSITION_X) {
 
                 pos_x = rawEvent->value;
+=======
+
+#define HAXOR
+
+#ifdef HAXOR
+# ifdef HAXOR_XY
+            if (rawEvent->scanCode == ABS_MT_POSITION_X) {
+>>>>>>> tpruvot_ics/ics
 
                 RawEvent event;
                 event.when = rawEvent->when;
@@ -985,6 +998,7 @@ void InputDevice::process(const RawEvent* rawEvents, size_t count) {
                     mapper->process(&event);
                 }
 
+<<<<<<< HEAD
             }
             else if (rawEvent->scanCode == ABS_MT_POSITION_Y) {
 
@@ -1069,6 +1083,95 @@ void InputDevice::process(const RawEvent* rawEvents, size_t count) {
                      mapper->process(rawEvent);
                 }
             }
+=======
+            }
+# endif
+            else if (rawEvent->scanCode == ABS_MT_POSITION_Y) {
+
+                RawEvent event;
+                event.when = rawEvent->when;
+                event.deviceId = rawEvent->deviceId;
+                event.keyCode = 0;
+                event.flags = 0;
+                event.value = 0;
+                event.scanCode = rawEvent->scanCode;
+
+                event.type = rawEvent->type;
+# ifdef HAXOR_XY
+                event.scanCode = ABS_MT_POSITION_X;
+# endif
+                event.value = rawEvent->value;
+
+                for (size_t i = 0; i < numMappers; i++) {
+                    mapper = mMappers[i];
+                    mapper->process(&event);
+                }
+
+                /* Pressure from TOUCH MAJOR */
+                event.type = rawEvent->type;
+                event.scanCode = ABS_MT_PRESSURE; //0x3a  /* Pressure on contact area */
+                event.value = z_data;
+
+                for (size_t i = 0; i < numMappers; i++) {
+                    mapper = mMappers[i];
+                    mapper->process(&event);
+                }
+
+/*
+                event.scanCode = ABS_MT_SLOT; //0x2f  MT slot being modified 
+
+        LOGI("Input Fake ABS_MT_SLOT: device=%d type=0x%04x scancode=0x%04x "
+                "keycode=0x%04x value=0x%08x flags=0x%08x",
+                event.deviceId, event.type, event.scanCode, event.keyCode,
+                event.value, event.flags);
+
+                for (size_t i = 0; i < numMappers; i++) {
+                    mapper->process(&event);
+                }
+
+
+                event.scanCode = ABS_MT_TRACKING_ID;
+
+        LOGI("Input Fake ABS_MT_TRACKING_ID: device=%d type=0x%04x scancode=0x%04x "
+                "keycode=0x%04x value=0x%08x flags=0x%08x",
+                event.deviceId, event.type, event.scanCode, event.keyCode,
+                event.value, event.flags);
+
+                for (size_t i = 0; i < numMappers; i++) {
+                    mapper->process(&event);
+                }
+*/
+
+                event.type = EV_KEY;
+                event.scanCode = BTN_TOUCH;
+                event.keyCode = BTN_LEFT;
+                event.value = touched;
+
+        LOGI("Input Fake BTN_TOUCH: device=%d type=0x%04x scancode=0x%04x "
+                "keycode=0x%04x value=0x%08x flags=0x%08x",
+                event.deviceId, event.type, event.scanCode, event.keyCode,
+                event.value, event.flags);
+
+                for (size_t i = 0; i < numMappers; i++) {
+                    mapper = mMappers[i];
+                    mapper->process(&event);
+                }
+
+                LOGD("Fake events sent touched=%d !", touched);
+
+            }
+#else
+            if (0) {}
+#endif //HAXOR
+            else {
+
+                for (size_t i = 0; i < numMappers; i++) {
+                     mapper = mMappers[i];
+                     mapper->process(rawEvent);
+                }
+
+            }
+>>>>>>> tpruvot_ics/ics
 
         }
 
@@ -5806,6 +5909,7 @@ mRawPointerAxes.slot.valid=1;
 LOGW("configureRawPointerAxes: slotCount=%d",slotCount);
 
 if (slotCount==0) slotCount = 2;
+
 LOGW("config: ABS_MT_POSITION_X = %d/%d", mRawPointerAxes.x.minValue, mRawPointerAxes.x.maxValue);
 LOGW("config: ABS_MT_POSITION_Y = %d/%d", mRawPointerAxes.y.minValue, mRawPointerAxes.y.maxValue);
 LOGW("config: MT_ORIENTATION    = %d/%d", mRawPointerAxes.orientation.minValue, mRawPointerAxes.orientation.maxValue);
