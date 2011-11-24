@@ -957,10 +957,7 @@ void InputDevice::process(const RawEvent* rawEvents, size_t count) {
             mDropUntilNextSync = true;
             reset(rawEvent->when);
         } else {
-<<<<<<< HEAD
-=======
 
->>>>>>> tpruvot_ics/ics
             if (!numMappers) continue;
             InputMapper* mapper = NULL;
 
@@ -970,18 +967,12 @@ void InputDevice::process(const RawEvent* rawEvents, size_t count) {
                 touched = (0 != z_data);
 
             }
-<<<<<<< HEAD
-            else if (rawEvent->scanCode == ABS_MT_POSITION_X) {
-
-                pos_x = rawEvent->value;
-=======
 
 #define HAXOR
 
 #ifdef HAXOR
 # ifdef HAXOR_XY
             if (rawEvent->scanCode == ABS_MT_POSITION_X) {
->>>>>>> tpruvot_ics/ics
 
                 RawEvent event;
                 event.when = rawEvent->when;
@@ -998,92 +989,6 @@ void InputDevice::process(const RawEvent* rawEvents, size_t count) {
                     mapper->process(&event);
                 }
 
-<<<<<<< HEAD
-            }
-            else if (rawEvent->scanCode == ABS_MT_POSITION_Y) {
-
-                RawEvent event;
-                event.when = rawEvent->when;
-                event.deviceId = rawEvent->deviceId;
-                event.flags = 0;
-
-                event.type = rawEvent->type;
-                event.scanCode = ABS_MT_POSITION_X;
-                event.keyCode = 0;
-                event.value = rawEvent->value;
-
-                for (size_t i = 0; i < numMappers; i++) {
-                    mapper = mMappers[i];
-                    mapper->process(&event);
-                }
-
-                /* Pressure from TOUCH MAJOR */
-                event.type = rawEvent->type;
-                event.scanCode = ABS_MT_PRESSURE; //0x3a  /* Pressure on contact area */
-                event.keyCode = 0;
-                event.value = z_data;
-
-                for (size_t i = 0; i < numMappers; i++) {
-                    mapper = mMappers[i];
-                    mapper->process(&event);
-                }
-
-/*
-                event.scanCode = ABS_MT_SLOT; //0x2f  MT slot being modified 
-                event.keyCode = 0;
-                event.value = 0;
-
-        LOGI("Input Fake ABS_MT_SLOT: device=%d type=0x%04x scancode=0x%04x "
-                "keycode=0x%04x value=0x%08x flags=0x%08x",
-                event.deviceId, event.type, event.scanCode, event.keyCode,
-                event.value, event.flags);
-
-                for (size_t i = 0; i < numMappers; i++) {
-                    mapper->process(&event);
-                }
-
-
-                event.scanCode = ABS_MT_TRACKING_ID;
-                event.keyCode = 0;
-                event.value = 0;
-
-        LOGI("Input Fake ABS_MT_TRACKING_ID: device=%d type=0x%04x scancode=0x%04x "
-                "keycode=0x%04x value=0x%08x flags=0x%08x",
-                event.deviceId, event.type, event.scanCode, event.keyCode,
-                event.value, event.flags);
-
-                for (size_t i = 0; i < numMappers; i++) {
-                    mapper->process(&event);
-                }
-*/
-
-                event.type = EV_KEY;
-                event.scanCode = BTN_TOUCH;
-                event.keyCode = BTN_LEFT;
-                event.value = touched;
-                event.flags = 0;
-
-        LOGI("Input Fake BTN_TOUCH: device=%d type=0x%04x scancode=0x%04x "
-                "keycode=0x%04x value=0x%08x flags=0x%08x",
-                event.deviceId, event.type, event.scanCode, event.keyCode,
-                event.value, event.flags);
-
-                for (size_t i = 0; i < numMappers; i++) {
-                    mapper = mMappers[i];
-                    mapper->process(&event);
-                }
-
-                LOGD("Fake events sent touched=%d !", touched);
-
-            }
-            else {
-
-                for (size_t i = 0; i < numMappers; i++) {
-                     mapper = mMappers[i];
-                     mapper->process(rawEvent);
-                }
-            }
-=======
             }
 # endif
             else if (rawEvent->scanCode == ABS_MT_POSITION_Y) {
@@ -1171,7 +1076,6 @@ void InputDevice::process(const RawEvent* rawEvents, size_t count) {
                 }
 
             }
->>>>>>> tpruvot_ics/ics
 
         }
 
@@ -1424,7 +1328,7 @@ void TouchButtonAccumulator::configure(InputDevice* device) {
 }
 
 void TouchButtonAccumulator::reset(InputDevice* device) {
-    mBtnTouch = 1;//device->isKeyPressed(BTN_TOUCH);
+    mBtnTouch = device->isKeyPressed(BTN_TOUCH);
     mBtnStylus = device->isKeyPressed(BTN_STYLUS);
     mBtnStylus2 = device->isKeyPressed(BTN_STYLUS);
     mBtnToolFinger = device->isKeyPressed(BTN_TOOL_FINGER);
@@ -1441,7 +1345,7 @@ void TouchButtonAccumulator::reset(InputDevice* device) {
 }
 
 void TouchButtonAccumulator::clearButtons() {
-    mBtnTouch = 1;
+    mBtnTouch = 0;
     mBtnStylus = 0;
     mBtnStylus2 = 0;
     mBtnToolFinger = 0;
@@ -3532,7 +3436,7 @@ void TouchInputMapper::sync(nsecs_t when) {
     syncTouch(when, &havePointerIds);
 
 #if DEBUG_RAW_EVENTS
-    if (0 && !havePointerIds) {
+    if (!havePointerIds) {
         LOGD("syncTouch: pointerCount %d -> %d, no pointer ids",
                 mLastRawPointerData.pointerCount,
                 mCurrentRawPointerData.pointerCount);
@@ -5907,7 +5811,6 @@ mRawPointerAxes.slot.valid=1;
 
 //to fix :p
 LOGW("configureRawPointerAxes: slotCount=%d",slotCount);
-
 if (slotCount==0) slotCount = 2;
 
 LOGW("config: ABS_MT_POSITION_X = %d/%d", mRawPointerAxes.x.minValue, mRawPointerAxes.x.maxValue);
