@@ -39,6 +39,8 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_C_INCLUDES := \
     external/skia/include/core
 
+LOCAL_CFLAGS := -DLEGACY_TOUCHSCREEN
+
 LOCAL_MODULE:= libinput
 
 LOCAL_MODULE_TAGS := optional
