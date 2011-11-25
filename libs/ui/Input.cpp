@@ -5,7 +5,7 @@
 //
 #define LOG_TAG "Input"
 
-#define LOG_NDEBUG 1
+#define LOG_NDEBUG 0
 
 // Log debug messages about keymap probing.
 #define DEBUG_PROBE 1

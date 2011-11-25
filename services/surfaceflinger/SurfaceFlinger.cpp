@@ -1375,6 +1375,7 @@ sp<ISurface> SurfaceFlinger::createSurface(
         if (surfaceHandle != 0) {
             params->token = token;
             params->identity = layer->getIdentity();
+
             if (normalLayer != 0) {
                 Mutex::Autolock _l(mStateLock);
                 mLayerMap.add(layer->getSurfaceBinder(), normalLayer);
@@ -1399,7 +1400,7 @@ sp<Layer> SurfaceFlinger::createNormalSurface(
         format = PIXEL_FORMAT_RGBA_8888;
         break;
     case PIXEL_FORMAT_OPAQUE:
-#ifdef NO_RGBX_8888
+#ifdef USE_16BPP_ALPHA
         format = PIXEL_FORMAT_RGB_565;
 #else
         format = PIXEL_FORMAT_RGBX_8888;
