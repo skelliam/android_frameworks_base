@@ -19,19 +19,19 @@
 #define LOG_NDEBUG 0
 
 // Log debug messages for each raw event received from the EventHub.
-#define DEBUG_RAW_EVENTS 1
+#define DEBUG_RAW_EVENTS 0
 
 // Log debug messages about touch screen filtering hacks.
-#define DEBUG_HACKS 1
+#define DEBUG_HACKS 0
 
 // Log debug messages about virtual key processing.
-#define DEBUG_VIRTUAL_KEYS 1
+#define DEBUG_VIRTUAL_KEYS 0
 
 // Log debug messages about pointers.
 #define DEBUG_POINTERS 1
 
 // Log debug messages about pointer assignment calculations.
-#define DEBUG_POINTER_ASSIGNMENT 1
+#define DEBUG_POINTER_ASSIGNMENT 0
 
 // Log debug messages about gesture detection.
 #define DEBUG_GESTURES 1
@@ -931,7 +931,9 @@ void InputDevice::process(const RawEvent* rawEvents, size_t count) {
     // have side-effects that must be interleaved.  For example, joystick movement events and
     // gamepad button presses are handled by different mappers but they should be dispatched
     // in the order received.
+#ifdef LEGACY_TOUCHSCREEN
     static int32_t touched, z_data;
+#endif
     size_t numMappers = mMappers.size();
     for (const RawEvent* rawEvent = rawEvents; count--; rawEvent++) {
 #if DEBUG_RAW_EVENTS
@@ -961,101 +963,60 @@ void InputDevice::process(const RawEvent* rawEvents, size_t count) {
             if (!numMappers) continue;
             InputMapper* mapper = NULL;
 
+#ifdef LEGACY_TOUCHSCREEN
+
+            // Old touchscreen sensors need to send a fake BTN_TOUCH (BTN_LEFT)
+
             if (rawEvent->scanCode == ABS_MT_TOUCH_MAJOR) {
 
                 z_data = rawEvent->value;
                 touched = (0 != z_data);
             }
-
-#define HAXOR
-
-#ifdef HAXOR
             else if (rawEvent->scanCode == ABS_MT_POSITION_Y) {
 
                 RawEvent event;
+                memset(&event, 0, sizeof(event));
                 event.when = rawEvent->when;
                 event.deviceId = rawEvent->deviceId;
-                event.keyCode = 0;
-                event.flags = 0;
-                event.value = 0;
                 event.scanCode = rawEvent->scanCode;
 
                 event.type = rawEvent->type;
                 event.value = rawEvent->value;
-
                 for (size_t i = 0; i < numMappers; i++) {
                     mapper = mMappers[i];
                     mapper->process(&event);
                 }
 
-                /* Pressure from TOUCH MAJOR */
+                /* Pressure on contact area from ABS_MT_TOUCH_MAJOR */
                 event.type = rawEvent->type;
-                event.scanCode = ABS_MT_PRESSURE; //0x3a  /* Pressure on contact area */
+                event.scanCode = ABS_MT_PRESSURE;
                 event.value = z_data;
-
                 for (size_t i = 0; i < numMappers; i++) {
                     mapper = mMappers[i];
                     mapper->process(&event);
                 }
-
-/*
-                event.scanCode = ABS_MT_SLOT; //0x2f  MT slot being modified 
-
-        LOGI("Input Fake ABS_MT_SLOT: device=%d type=0x%04x scancode=0x%04x "
-                "keycode=0x%04x value=0x%08x flags=0x%08x",
-                event.deviceId, event.type, event.scanCode, event.keyCode,
-                event.value, event.flags);
-
-                for (size_t i = 0; i < numMappers; i++) {
-                    mapper = mMappers[i];
-                    mapper->process(&event);
-                }
-
-
-                event.scanCode = ABS_MT_TRACKING_ID;
-
-        LOGI("Input Fake ABS_MT_TRACKING_ID: device=%d type=0x%04x scancode=0x%04x "
-                "keycode=0x%04x value=0x%08x flags=0x%08x",
-                event.deviceId, event.type, event.scanCode, event.keyCode,
-                event.value, event.flags);
-
-                for (size_t i = 0; i < numMappers; i++) {
-                    mapper = mMappers[i];
-                    mapper->process(&event);
-                }
-*/
 
                 event.type = EV_KEY;
                 event.scanCode = BTN_TOUCH;
                 event.keyCode = BTN_LEFT;
                 event.value = touched;
-
-        LOGI("Input Fake BTN_TOUCH: device=%d type=0x%04x scancode=0x%04x "
-                "keycode=0x%04x value=0x%08x flags=0x%08x",
-                event.deviceId, event.type, event.scanCode, event.keyCode,
-                event.value, event.flags);
-
                 for (size_t i = 0; i < numMappers; i++) {
                     mapper = mMappers[i];
                     mapper->process(&event);
                 }
 
-                LOGD("Fake events sent touched=%d !", touched);
-
+                LOGD("Fake event sent, touch=%d !", touched);
             }
-#else
-            if (0) {}
-#endif //HAXOR
-            else {
-
+            else
+#endif //LEGACY_TOUCHSCREEN
+            {
+                // just send the rawEvent
                 for (size_t i = 0; i < numMappers; i++) {
                      mapper = mMappers[i];
                      mapper->process(rawEvent);
                 }
             }
-
         }
-
     }
 }
 
@@ -1609,7 +1570,7 @@ void MultiTouchMotionAccumulator::reset(InputDevice* device) {
                 ABS_MT_SLOT, &initialSlot);
         if (status) {
             LOGD("Could not retrieve current multitouch slot index.  status=%d", status);
-            initialSlot = 0;
+            initialSlot = -1;
         }
         clearSlots(initialSlot);
     } else {
@@ -1629,9 +1590,6 @@ void MultiTouchMotionAccumulator::clearSlots(int32_t initialSlot) {
 void MultiTouchMotionAccumulator::process(const RawEvent* rawEvent) {
     if (rawEvent->type == EV_ABS) {
         bool newSlot = false;
-
-mUsingSlotsProtocol = false;
-
         if (mUsingSlotsProtocol) {
             if (rawEvent->scanCode == ABS_MT_SLOT) {
                 mCurrentSlot = rawEvent->value;
@@ -5733,7 +5691,6 @@ void MultiTouchInputMapper::syncTouch(nsecs_t when, bool* outHavePointerIds) {
                     id = mPointerIdBits.markFirstUnmarkedBit();
                     mPointerTrackingIdMap[id] = trackingId;
                 }
-LOGW("MultiTouch Device %s trackingId=%d", getDeviceName().string(), trackingId);
             }
             if (id < 0) {
                 *outHavePointerIds = false;
@@ -5771,10 +5728,6 @@ void MultiTouchInputMapper::configureRawPointerAxes() {
     getAbsoluteAxisInfo(ABS_MT_TRACKING_ID, &mRawPointerAxes.trackingId);
     getAbsoluteAxisInfo(ABS_MT_SLOT, &mRawPointerAxes.slot);
 
-mRawPointerAxes.slot.minValue=0;
-mRawPointerAxes.slot.maxValue=5;
-mRawPointerAxes.slot.valid=1;
-
     if (mRawPointerAxes.trackingId.valid
             && mRawPointerAxes.slot.valid
             && mRawPointerAxes.slot.minValue == 0 && mRawPointerAxes.slot.maxValue > 0) {
@@ -5785,18 +5738,6 @@ mRawPointerAxes.slot.valid=1;
                     getDeviceName().string(), slotCount, MAX_SLOTS);
             slotCount = MAX_SLOTS;
         }
-
-//to fix :p
-LOGW("configureRawPointerAxes: slotCount=%d",slotCount);
-if (slotCount==0) slotCount = 2;
-
-LOGW("config: ABS_MT_POSITION_X = %d/%d", mRawPointerAxes.x.minValue, mRawPointerAxes.x.maxValue);
-LOGW("config: ABS_MT_POSITION_Y = %d/%d", mRawPointerAxes.y.minValue, mRawPointerAxes.y.maxValue);
-LOGW("config: MT_ORIENTATION    = %d/%d", mRawPointerAxes.orientation.minValue, mRawPointerAxes.orientation.maxValue);
-if (mRawPointerAxes.orientation.maxValue == 0) {
-    mRawPointerAxes.orientation.maxValue = 360;
-    mRawPointerAxes.orientation.valid = true;
-}
         mMultiTouchMotionAccumulator.configure(slotCount, true /*usingSlotsProtocol*/);
     } else {
         mMultiTouchMotionAccumulator.configure(MAX_POINTERS, false /*usingSlotsProtocol*/);
