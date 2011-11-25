@@ -75,6 +75,10 @@ public:
     void enableHDMIOutput(bool enable);
 #endif
 
+    int setParameter(uint32_t cmd,uint32_t value);
+
+    uint32_t getParameter(uint32_t cmd);
+
     // for debugging
     void dump(String8& out, char* scratch, size_t SIZE,
             const Vector< sp<LayerBase> >& visibleLayersSortedByZ) const;

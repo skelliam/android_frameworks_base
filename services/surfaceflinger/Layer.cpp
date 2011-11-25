@@ -70,9 +70,15 @@ Layer::Layer(SurfaceFlinger* flinger,
 {
     mCurrentCrop.makeInvalid();
     glGenTextures(1, &mTextureName);
+
 #ifdef QCOM_HARDWARE
     updateLayerQcomFlags(LAYER_UPDATE_STATUS, true, mLayerQcomFlags);
 #endif
+
+    texture_srcw 	= 0;
+    texture_srch 	= 0;
+    texture_format 	= 0;
+
 }
 
 void Layer::onFirstRef()
@@ -147,6 +153,13 @@ sp<ISurface> Layer::createSurface()
 wp<IBinder> Layer::getSurfaceTextureBinder() const
 {
     return mSurfaceTexture->asBinder();
+}
+
+void Layer::setTextureInfo(int w,int h,int format)
+{
+    texture_srcw 	= w;
+    texture_srch 	= h;
+    texture_format 	= format;
 }
 
 status_t Layer::setBuffers( uint32_t w, uint32_t h,
@@ -271,10 +284,15 @@ void Layer::setPerFrameData(hwc_layer_t* hwcl) {
     } else {
         hwcl->handle = buffer->handle;
     }
+
 #ifdef QCOM_HARDWARE
     updateLayerQcomFlags(LAYER_ASYNCHRONOUS_STATUS, !mSurfaceTexture->isSynchronousMode(), mLayerQcomFlags);
     hwcl->flags = getPerFrameFlags(hwcl->flags, mLayerQcomFlags);
 #endif
+
+    hwcl->format = texture_format;
+    LOGV("hwcl->format = %d\n",texture_format);
+
 }
 
 void Layer::onDraw(const Region& clip) const
@@ -434,7 +452,7 @@ uint32_t Layer::doTransaction(uint32_t flags)
 
     if (sizeChanged) {
         // the size changed, we need to ask our client to request a new buffer
-        LOGD_IF(DEBUG_RESIZE,
+        LOGV_IF(DEBUG_RESIZE,
                 "doTransaction: "
                 "resize (layer=%p), requested (%dx%d), drawing (%d,%d), "
                 "scalingMode=%d",
@@ -588,7 +606,7 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
                 recomputeVisibleRegions = true;
             }
 
-            LOGD_IF(DEBUG_RESIZE,
+            LOGV_IF(DEBUG_RESIZE,
                     "lockPageFlip : "
                     "       (layer=%p), buffer (%ux%u, tr=%02x), "
                     "requested (%dx%d)",
@@ -664,6 +682,16 @@ uint32_t Layer::getEffectiveUsage(uint32_t usage) const
 #endif
 
     return usage;
+}
+
+int Layer::setDisplayParameter(uint32_t cmd,uint32_t  value)
+{
+    return mFlinger->setDisplayParameter(cmd,value);
+}
+
+uint32_t Layer::getDisplayParameter(uint32_t cmd)
+{
+    return mFlinger->getDisplayParameter(cmd);
 }
 
 uint32_t Layer::getTransformHint() const {
