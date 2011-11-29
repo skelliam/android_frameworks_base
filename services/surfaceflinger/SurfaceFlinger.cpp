@@ -1416,6 +1416,7 @@ int SurfaceFlinger::setOrientation(DisplayID dpy,
     return orientation;
 }
 
+
 #ifdef QCOM_HDMI_OUT
 void SurfaceFlinger::updateHwcHDMI(bool enable)
 {
@@ -1443,6 +1444,20 @@ void SurfaceFlinger::setActionSafeHeightRatio(float asHeightRatio){
     hw.setActionSafeHeightRatio(asHeightRatio);
 }
 #endif
+
+int SurfaceFlinger::setDisplayProp(int cmd,int param0,int param1,int param2)
+{
+    const DisplayHardware& hw(graphicPlane(0).displayHardware());
+    return hw.setDispProp(cmd,param0,param1,param2);
+}
+
+int SurfaceFlinger::getDisplayProp(int cmd,int param0,int param1)
+{
+    const DisplayHardware& hw(graphicPlane(0).displayHardware());
+
+    return hw.getDispProp(cmd,param0,param1);
+}
+
 
 sp<ISurface> SurfaceFlinger::createSurface(
         ISurfaceComposerClient::surface_data_t* params,

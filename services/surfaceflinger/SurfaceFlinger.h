@@ -189,6 +189,9 @@ public:
     virtual void                        setActionSafeHeightRatio(float asHeightRatio);
 #endif
 
+    virtual int                         setDisplayProp(int cmd,int param0,int param1,int param2);
+    virtual int                         getDisplayProp(int cmd,int param0,int param1);
+
     virtual status_t captureScreen(DisplayID dpy,
             sp<IMemoryHeap>* heap,
             uint32_t* width, uint32_t* height,
