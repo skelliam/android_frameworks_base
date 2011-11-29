@@ -523,12 +523,10 @@ public abstract class HardwareRenderer {
                             sDirtyRegions = false;
                             sEglConfig = chooseEglConfig();
                             if (sEglConfig == null) {
-                            //    throw new RuntimeException("eglConfig not initialized");
-                                Log.e(LOG_TAG, "eglConfig not initialized");
+                                throw new RuntimeException("eglConfig not initialized");
                             }
                         } else {
-                            Log.e(LOG_TAG, "eglConfig not initialized (2)");
-                            //throw new RuntimeException("eglConfig not initialized");
+                            throw new RuntimeException("eglConfig not initialized");
                         }
                     }
                 }
@@ -549,7 +547,7 @@ public abstract class HardwareRenderer {
             int[] configSpec = getConfig(sDirtyRegions);
 
             // Debug
-            final String debug = SystemProperties.get(PRINT_CONFIG_PROPERTY, "choice");
+            final String debug = SystemProperties.get(PRINT_CONFIG_PROPERTY, "");
             if ("all".equalsIgnoreCase(debug)) {
                 sEgl.eglChooseConfig(sEglDisplay, configSpec, null, 0, configsCount);
 

@@ -14,8 +14,6 @@
  ** limitations under the License.
  */
 
-#define LOG_NDEBUG 0
-
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -226,10 +224,6 @@ EGLBoolean eglChooseConfig( EGLDisplay dpy, const EGLint *attrib_list,
     clearError();
 
     egl_display_t const * const dp = validate_display(dpy);
-    if (!dp) {
-        LOGE("EGL: eglChooseConfig %d/%d", (uint32_t) config_size, (uint32_t) num_config);
-        //return setError(EGL_BAD_DISPLAY, EGL_FALSE);
-    }
     if (!dp) return EGL_FALSE;
 
     if (num_config==0) {

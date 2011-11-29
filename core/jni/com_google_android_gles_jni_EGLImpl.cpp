@@ -208,25 +208,15 @@ static jboolean jni_eglChooseConfig(JNIEnv *_env, jobject _this, jobject display
     return success;
 }
 
-static EGLConfig last_config;
-static int last_config_set=0;
-
 static jint jni_eglCreateContext(JNIEnv *_env, jobject _this, jobject display,
         jobject config, jobject share_context, jintArray attrib_list) {
-    if (display == NULL || (config == NULL && !last_config_set) || share_context == NULL
+    if (display == NULL || config == NULL || share_context == NULL
         || !validAttribList(_env, attrib_list)) {
         jniThrowException(_env, "java/lang/IllegalArgumentException", NULL);
         return JNI_FALSE;
     }
     EGLDisplay dpy = getDisplay(_env, display);
-    EGLConfig  cnf;
-    if (config != NULL) {
-        cnf = getConfig(_env, config);
-        last_config_set=1;
-        memcpy(&last_config, &cnf, sizeof(cnf));
-    } else {
-        memcpy(&cnf, &last_config, sizeof(cnf));
-    }
+    EGLConfig  cnf = getConfig(_env, config);
     EGLContext shr = getContext(_env, share_context);
     jint* base = beginNativeAttribList(_env, attrib_list);
     EGLContext ctx = eglCreateContext(dpy, cnf, shr, base);
