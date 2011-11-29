@@ -27,7 +27,6 @@
 
 #include <cutils/atomic.h>
 
-#define LOG_NDEBUG 0
 
 #include <private/ui/android_natives_priv.h>
 
@@ -1493,10 +1492,8 @@ EGLBoolean eglChooseConfig( EGLDisplay dpy, const EGLint *attrib_list,
 {
     puts("agl2:eglChooseConfig");
     LOGD("\n***\n***\n agl2:LOGD eglChooseConfig \n***\n***\n");
-    if (egl_display_t::is_valid(dpy) == EGL_FALSE) {
-        LOGE("eglChooseConfig %d", config_size);
-        //return setError(EGL_BAD_DISPLAY, EGL_FALSE);
-    }
+    if (egl_display_t::is_valid(dpy) == EGL_FALSE)
+        return setError(EGL_BAD_DISPLAY, EGL_FALSE);
 
     if (ggl_unlikely(num_config==0)) {
         LOGD("\n***\n***\n num_config==0 \n***\n***\n");

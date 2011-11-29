@@ -94,12 +94,6 @@ public class ImageFormat {
     public static final int BAYER_RGGB = 0x200;
 
     /**
-     * Old formats
-     */
-    public static final int YCbCr_422_SP = 0x10;
-    public static final int YCbCr_422_I  = 0x14;
-
-    /**
      * Use this function to retrieve the number of bits per pixel of an
      * ImageFormat.
      *

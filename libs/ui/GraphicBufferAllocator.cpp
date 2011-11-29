@@ -98,18 +98,16 @@ status_t GraphicBufferAllocator::alloc(uint32_t w, uint32_t h, PixelFormat forma
 
     // we have a h/w allocator and h/w buffer is requested
     status_t err;
-    if (format == HAL_PIXEL_FORMAT_YV12 || format == HAL_PIXEL_FORMAT_RGBX_8888) {
-        format = HAL_PIXEL_FORMAT_RGBA_8888;
-    }
+
     if (usage & GRALLOC_USAGE_EXTERNAL_DISP) {
-        usage ^= GRALLOC_USAGE_EXTERNAL_DISP;
+        usage -= GRALLOC_USAGE_EXTERNAL_DISP;
     }
 
     err = mAllocDev->alloc(mAllocDev, w, h, format, usage, handle, stride);
 
     LOGW_IF(err, "alloc(%u, %u, %d, %08x, ...) failed %d (%s)",
             w, h, format, usage, err, strerror(-err));
-
+    
     if (err == NO_ERROR) {
         Mutex::Autolock _l(sLock);
         KeyedVector<buffer_handle_t, alloc_rec_t>& list(sAllocList);
