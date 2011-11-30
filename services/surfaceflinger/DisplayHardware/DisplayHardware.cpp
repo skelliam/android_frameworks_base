@@ -115,7 +115,7 @@ static status_t selectConfigForPixelFormat(
     eglChooseConfig(dpy, attrs, configs, numConfigs, &n);
 
     memset(&last_config, 0, sizeof(last_config));
-    EGLint r,g,b,a;
+    EGLint r,g,b,a,s,t;
 
     for (int i=0 ; i<n ; i++) {
 /*
@@ -132,10 +132,12 @@ static status_t selectConfigForPixelFormat(
         eglGetConfigAttrib(dpy, configs[i], EGL_GREEN_SIZE, &g);
         eglGetConfigAttrib(dpy, configs[i], EGL_BLUE_SIZE,  &b);
         eglGetConfigAttrib(dpy, configs[i], EGL_ALPHA_SIZE, &a);
+        eglGetConfigAttrib(dpy, configs[i], EGL_SURFACE_TYPE, &s);
+        eglGetConfigAttrib(dpy, configs[i], EGL_TRANSPARENT_TYPE, &s);
 
         if (r==0) continue;
 
-        LOGI("Config %d: RGBA %x %x %x %x ", i, r,g,b,a);
+        LOGI("Config %d: RGBA_%d%d%d%d Surface %x Transp %x ", i, r,g,b,a, s,t);
     }
 
     for (int i=0 ; i<n ; i++) {
