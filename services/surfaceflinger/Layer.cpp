@@ -88,16 +88,8 @@ void Layer::onFirstRef()
 
 Layer::~Layer()
 {
-    class MessageDestroyGLState : public MessageBase {
-        GLuint texture;
-    public:
-        MessageDestroyGLState(GLuint texture) : texture(texture) { }
-        virtual bool handler() {
-            glDeleteTextures(1, &texture);
-            return true;
-        }
-    };
-    mFlinger->postMessageAsync( new MessageDestroyGLState(mTextureName) );
+    mFlinger->postMessageAsync(
+            new SurfaceFlinger::MessageDestroyGLTexture(mTextureName) );
 }
 
 void Layer::onFrameQueued() {
@@ -110,6 +102,11 @@ void Layer::onFrameQueued() {
 void Layer::onRemoved()
 {
     mSurfaceTexture->abandon();
+}
+
+void Layer::setName(const String8& name) {
+    LayerBase::setName(name);
+    mSurfaceTexture->setName(name);
 }
 
 sp<ISurface> Layer::createSurface()
@@ -212,6 +209,24 @@ void Layer::setGeometry(hwc_layer_t* hwcl)
     } else {
         hwcl->transform = finalTransform;
     }
+
+    if (isCropped()) {
+        hwcl->sourceCrop.left   = mCurrentCrop.left;
+        hwcl->sourceCrop.top    = mCurrentCrop.top;
+        hwcl->sourceCrop.right  = mCurrentCrop.right;
+        hwcl->sourceCrop.bottom = mCurrentCrop.bottom;
+    } else {
+        const sp<GraphicBuffer>& buffer(mActiveBuffer);
+        hwcl->sourceCrop.left   = 0;
+        hwcl->sourceCrop.top    = 0;
+        if (buffer != NULL) {
+            hwcl->sourceCrop.right  = buffer->width;
+            hwcl->sourceCrop.bottom = buffer->height;
+        } else {
+            hwcl->sourceCrop.right  = mTransformedBounds.width();
+            hwcl->sourceCrop.bottom = mTransformedBounds.height();
+        }
+    }
 }
 
 void Layer::setPerFrameData(hwc_layer_t* hwcl) {
@@ -224,23 +239,6 @@ void Layer::setPerFrameData(hwc_layer_t* hwcl) {
         hwcl->handle = NULL;
     } else {
         hwcl->handle = buffer->handle;
-    }
-
-    if (isCropped()) {
-        hwcl->sourceCrop.left   = mCurrentCrop.left;
-        hwcl->sourceCrop.top    = mCurrentCrop.top;
-        hwcl->sourceCrop.right  = mCurrentCrop.right;
-        hwcl->sourceCrop.bottom = mCurrentCrop.bottom;
-    } else {
-        hwcl->sourceCrop.left   = 0;
-        hwcl->sourceCrop.top    = 0;
-        if (buffer != NULL) {
-            hwcl->sourceCrop.right  = buffer->width;
-            hwcl->sourceCrop.bottom = buffer->height;
-        } else {
-            hwcl->sourceCrop.right  = mTransformedBounds.width();
-            hwcl->sourceCrop.bottom = mTransformedBounds.height();
-        }
     }
 }
 
@@ -274,24 +272,33 @@ void Layer::onDraw(const Region& clip) const
         return;
     }
 
-    const GLenum target = GL_TEXTURE_EXTERNAL_OES;
-    glBindTexture(target, mTextureName);
-    if (getFiltering() || needsFiltering() || isFixedSize() || isCropped()) {
-        // TODO: we could be more subtle with isFixedSize()
-        glTexParameterx(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameterx(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    if (!isProtected()) {
+        glBindTexture(GL_TEXTURE_EXTERNAL_OES, mTextureName);
+        GLenum filter = GL_NEAREST;
+        if (getFiltering() || needsFiltering() || isFixedSize() || isCropped()) {
+            // TODO: we could be more subtle with isFixedSize()
+            filter = GL_LINEAR;
+        }
+        glTexParameterx(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, filter);
+        glTexParameterx(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, filter);
+        glMatrixMode(GL_TEXTURE);
+        glLoadMatrixf(mTextureMatrix);
+        glMatrixMode(GL_MODELVIEW);
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_TEXTURE_EXTERNAL_OES);
     } else {
-        glTexParameterx(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameterx(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, mFlinger->getProtectedTexName());
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glDisable(GL_TEXTURE_EXTERNAL_OES);
+        glEnable(GL_TEXTURE_2D);
     }
-    glEnable(target);
-    glMatrixMode(GL_TEXTURE);
-    glLoadMatrixf(mTextureMatrix);
-    glMatrixMode(GL_MODELVIEW);
 
     drawWithOpenGL(clip);
 
-    glDisable(target);
+    glDisable(GL_TEXTURE_EXTERNAL_OES);
+    glDisable(GL_TEXTURE_2D);
 }
 
 // As documented in libhardware header, formats in the range
@@ -370,11 +377,12 @@ uint32_t Layer::doTransaction(uint32_t flags)
             Layer::State& editDraw(mDrawingState);
             editDraw.requested_w = temp.requested_w;
             editDraw.requested_h = temp.requested_h;
-
-            // record the new size, form this point on, when the client request
-            // a buffer, it'll get the new size.
-            mSurfaceTexture->setDefaultBufferSize(temp.requested_w, temp.requested_h);
         }
+
+        // record the new size, form this point on, when the client request
+        // a buffer, it'll get the new size.
+        mSurfaceTexture->setDefaultBufferSize(temp.requested_w,
+                temp.requested_h);
     }
 
     if (temp.sequence != front.sequence) {
@@ -403,7 +411,9 @@ bool Layer::isCropped() const {
 void Layer::lockPageFlip(bool& recomputeVisibleRegions)
 {
     if (mQueuedFrames > 0) {
+        // Capture the old state of the layer for comparisons later
         const bool oldOpacity = isOpaque();
+        sp<GraphicBuffer> oldActiveBuffer = mActiveBuffer;
 
         // signal another event if we have more frames pending
         if (android_atomic_dec(&mQueuedFrames) > 1) {
@@ -416,8 +426,8 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
             return;
         }
 
+        // update the active buffer
         mActiveBuffer = mSurfaceTexture->getCurrentBuffer();
-        mSurfaceTexture->getTransformMatrix(mTextureMatrix);
 
         const Rect crop(mSurfaceTexture->getCurrentCrop());
         const uint32_t transform(mSurfaceTexture->getCurrentTransform());
@@ -430,6 +440,22 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
             mCurrentTransform = transform;
             mCurrentScalingMode = scalingMode;
             mFlinger->invalidateHwcGeometry();
+        }
+
+        GLfloat textureMatrix[16];
+        mSurfaceTexture->getTransformMatrix(textureMatrix);
+        if (memcmp(textureMatrix, mTextureMatrix, sizeof(textureMatrix))) {
+            memcpy(mTextureMatrix, textureMatrix, sizeof(textureMatrix));
+            mFlinger->invalidateHwcGeometry();
+        }
+
+        uint32_t bufWidth  = mActiveBuffer->getWidth();
+        uint32_t bufHeight = mActiveBuffer->getHeight();
+        if (oldActiveBuffer != NULL) {
+            if (bufWidth != uint32_t(oldActiveBuffer->width) ||
+                bufHeight != uint32_t(oldActiveBuffer->height)) {
+                mFlinger->invalidateHwcGeometry();
+            }
         }
 
         mCurrentOpacity = getOpacityForFormat(mActiveBuffer->format);
@@ -446,15 +472,11 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
         // FIXME: mPostedDirtyRegion = dirty & bounds
         mPostedDirtyRegion.set(front.w, front.h);
 
-
         if ((front.w != front.requested_w) ||
             (front.h != front.requested_h))
         {
             // check that we received a buffer of the right size
             // (Take the buffer's orientation into account)
-            sp<GraphicBuffer> newFrontBuffer(mActiveBuffer);
-            uint32_t bufWidth  = newFrontBuffer->getWidth();
-            uint32_t bufHeight = newFrontBuffer->getHeight();
             if (mCurrentTransform & Transform::ROT_90) {
                 swap(bufWidth, bufHeight);
             }
@@ -538,9 +560,9 @@ void Layer::dump(String8& result, char* buffer, size_t SIZE) const
     snprintf(buffer, SIZE,
             "      "
             "format=%2d, activeBuffer=[%4ux%4u:%4u,%3X],"
-            " freezeLock=%p, queued-frames=%d\n",
+            " freezeLock=%p, transform-hint=0x%02x, queued-frames=%d\n",
             mFormat, w0, h0, s0,f0,
-            getFreezeLock().get(), mQueuedFrames);
+            getFreezeLock().get(), getTransformHint(), mQueuedFrames);
 
     result.append(buffer);
 
@@ -556,7 +578,20 @@ uint32_t Layer::getEffectiveUsage(uint32_t usage) const
         // need a hardware-protected path to external video sink
         usage |= GraphicBuffer::USAGE_PROTECTED;
     }
+    //usage |= GraphicBuffer::USAGE_HW_COMPOSER;
+    usage |= GraphicBuffer::USAGE_HW_TEXTURE;
     return usage;
+}
+
+uint32_t Layer::getTransformHint() const {
+    uint32_t orientation = 0;
+    if (!mFlinger->mDebugDisableTransformHint) {
+        orientation = getPlaneOrientation();
+        if (orientation & Transform::ROT_INVALID) {
+            orientation = 0;
+        }
+    }
+    return orientation;
 }
 
 // ---------------------------------------------------------------------------
