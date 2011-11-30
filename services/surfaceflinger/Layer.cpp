@@ -255,8 +255,7 @@ void Layer::onDraw(const Region& clip) const
 
         // figure out if there is something below us
         Region under;
-        const SurfaceFlinger::LayerVector& drawingLayers(
-                mFlinger->mDrawingState.layersSortedByZ);
+        const SurfaceFlinger::LayerVector& drawingLayers(mFlinger->mDrawingState.layersSortedByZ);
         const size_t count = drawingLayers.size();
         for (size_t i=0 ; i<count ; ++i) {
             const sp<LayerBase>& layer(drawingLayers[i]);
@@ -272,20 +271,12 @@ void Layer::onDraw(const Region& clip) const
         return;
     }
 
-    if (!isProtected()) {
-        glBindTexture(GL_TEXTURE_EXTERNAL_OES, mTextureName);
-        GLenum filter = GL_NEAREST;
-        if (getFiltering() || needsFiltering() || isFixedSize() || isCropped()) {
-            // TODO: we could be more subtle with isFixedSize()
-            filter = GL_LINEAR;
-        }
-        glTexParameterx(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, filter);
-        glTexParameterx(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, filter);
-        glMatrixMode(GL_TEXTURE);
-        glLoadMatrixf(mTextureMatrix);
-        glMatrixMode(GL_MODELVIEW);
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_TEXTURE_EXTERNAL_OES);
+    GLenum target = mSurfaceTexture->getCurrentTextureTarget();
+    glBindTexture(target, mTextureName);
+    if (getFiltering() || needsFiltering() || isFixedSize() || isCropped()) {
+        // TODO: we could be more subtle with isFixedSize()
+        glTexParameterx(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameterx(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     } else {
         glBindTexture(GL_TEXTURE_2D, mFlinger->getProtectedTexName());
         glMatrixMode(GL_TEXTURE);
@@ -463,8 +454,9 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
             recomputeVisibleRegions = true;
         }
 
-        glTexParameterx(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameterx(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        const GLenum target(mSurfaceTexture->getCurrentTextureTarget());
+        glTexParameterx(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameterx(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         // update the layer size and release freeze-lock
         const Layer::State& front(drawingState());
