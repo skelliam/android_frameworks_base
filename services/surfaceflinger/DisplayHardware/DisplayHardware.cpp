@@ -133,7 +133,7 @@ static status_t selectConfigForPixelFormat(
         eglGetConfigAttrib(dpy, configs[i], EGL_BLUE_SIZE,  &b);
         eglGetConfigAttrib(dpy, configs[i], EGL_ALPHA_SIZE, &a);
         eglGetConfigAttrib(dpy, configs[i], EGL_SURFACE_TYPE, &s);
-        eglGetConfigAttrib(dpy, configs[i], EGL_TRANSPARENT_TYPE, &s);
+        eglGetConfigAttrib(dpy, configs[i], EGL_TRANSPARENT_TYPE, &t);
 
         if (r==0) continue;
 
