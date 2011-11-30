@@ -121,29 +121,12 @@ static status_t selectConfigForPixelFormat(
 /*
         EGLint nativeVisualId = 0;
         eglGetConfigAttrib(dpy, configs[i], EGL_NATIVE_VISUAL_ID, &nativeVisualId);
-
         if (nativeVisualId>0 && format == nativeVisualId) {
-            *outConfig = configs;
-            delete [] configs;
-            return NO_ERROR;
-        }*/
-
-        EGLint r,g,b,a;
-        EGLConfig curr = configs[i];
-        eglGetConfigAttrib(dpy, curr, EGL_RED_SIZE,   &r);
-        eglGetConfigAttrib(dpy, curr, EGL_GREEN_SIZE, &g);
-        eglGetConfigAttrib(dpy, curr, EGL_BLUE_SIZE,  &b);
-        eglGetConfigAttrib(dpy, curr, EGL_ALPHA_SIZE, &a);
-	LOGI("RGBA %x %x %x %x ", r,g,b,a);	
-	LOGI("KAI2 selectConfigForPixelFormat %x", i);	
-//        if (8 == a && 8 == r && 8 == g && 8  == b) {
-        if (8 == a && 8 == r && 8 == g && 8  == b) {
-	LOGI("KAI selectConfigForPixelFormat %x", i);		
             *outConfig = configs[i];
             delete [] configs;
             return NO_ERROR;
         }
-
+*/
         // Display available egl configs
         eglGetConfigAttrib(dpy, configs[i], EGL_RED_SIZE,   &r);
         eglGetConfigAttrib(dpy, configs[i], EGL_GREEN_SIZE, &g);
