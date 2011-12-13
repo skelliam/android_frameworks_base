@@ -775,6 +775,7 @@ extern "C" bool _ZN7android11AudioSystem12isA2dpDeviceENS0_13audio_devicesE(uint
 
 extern "C" bool _ZN7android11AudioSystem13isInputDeviceENS0_13audio_devicesE(uint32_t device)
 {
+<<<<<<< HEAD
     if ((_ZN7android11AudioSystem8popCountEj(device) == 1 ) &&
         (device & ~0x81ff0000 == 0)) {
         return true;

@@ -58,6 +58,7 @@ LOCAL_SHARED_LIBRARIES := \
         libcamera_client libstagefright_foundation \
         libgui libdl
 
+
 LOCAL_WHOLE_STATIC_LIBRARY := libmedia_helper
 
 LOCAL_MODULE:= libmedia
