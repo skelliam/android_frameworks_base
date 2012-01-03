@@ -21,7 +21,7 @@
 
 #include <cutils/properties.h>
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 
 #include <utils/RefBase.h>
 #include <utils/Log.h>
