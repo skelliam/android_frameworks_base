@@ -58,15 +58,14 @@ import java.util.Arrays;
 public class LegacyUsbDeviceManager extends UsbDeviceManager {
 
     private static final String TAG = LegacyUsbDeviceManager.class.getSimpleName();
-
     private static final boolean DEBUG = false;
 
     private static final String USB_CONNECTED_MATCH =
-            "/sys/devices/virtual/switch/usb_connected";
+            "DEVPATH=/devices/virtual/switch/usb_connected";
     private static final String USB_CONFIGURATION_MATCH =
-            "/sys/devices/virtual/switch/usb_configuration";
+            "DEVPATH=/devices/virtual/switch/usb_configuration";
     private static final String USB_LEGACY_MATCH =
-            "/sys/devices/virtual/switch/usb_mass_storage";
+            "DEVPATH=/devices/virtual/switch/usb_mass_storage";
     private static final String USB_CONNECTED_PATH =
             "/sys/class/switch/usb_connected/state";
     private static final String USB_CONFIGURATION_PATH =
@@ -76,7 +75,7 @@ public class LegacyUsbDeviceManager extends UsbDeviceManager {
     private static final String FUNCTIONS_PATH =
             "/sys/devices/virtual/usb_composite/";
     private static final String MASS_STORAGE_FILE_PATH =
-            "/sys/devices/platform/usb_mass_storage/lun0/file";
+            Resources.getSystem().getString(com.android.internal.R.string.config_legacyUmsLunFile);
 
     private static final int MSG_UPDATE_STATE = 0;
     private static final int MSG_ENABLE_ADB = 1;
@@ -414,7 +413,7 @@ public class LegacyUsbDeviceManager extends UsbDeviceManager {
                 setEnabledFunctions(mDefaultFunctions, true);
                 updateAdbNotification();
             }
-        SystemProperties.set("persist.service.adb.enable", enable ? "1":"0");
+            SystemProperties.set("persist.service.adb.enable", enable ? "1":"0");
         }
 
         private void setEnabledFunctions(String functions, boolean makeDefault) {
