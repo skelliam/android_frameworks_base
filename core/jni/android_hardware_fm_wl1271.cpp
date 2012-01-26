@@ -38,6 +38,13 @@
 #define FM_JNI_SUCCESS 0L
 #define FM_JNI_FAILURE -1L
 
+/*****************IOCTLS******************/
+/*magic value*/
+#define wl1271_IOC_MAGIC 0x42535442
+
+/*commands*/
+#define wl1271_IOC_POWERUP                          _IO(wl1271_IOC_MAGIC, 0)
+
 
 int setFreq(int freq);
 int radioOn();
@@ -51,14 +58,24 @@ static int lastFreq = 0;
 static int giLow = 87500;
 static int giStep = 100;
 
-int radioOn()
+int radioOn(int fd)
 {
     if (radioEnabled) {
         return FM_JNI_SUCCESS;
     }
 
     // power up FM radio
-    if (system("hcitool cmd 0x3f 0x137 0x01 0x01") < 0) {
+ /*   if (system("hcitool cmd 0x3f 0x137 0x01 0x01") < 0) {
+        return FM_JNI_FAILURE;
+    } */
+
+    int ret;
+
+    ret = ioctl(fd, wl1271_IOC_POWERUP);
+
+    if (ret < 0)
+    {
+        LOGE("%s: IOCTL wl1271_IOC_POWERUP failed %d", __func__, ret);
         return FM_JNI_FAILURE;
     }
 
