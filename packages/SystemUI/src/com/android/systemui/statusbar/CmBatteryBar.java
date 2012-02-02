@@ -164,7 +164,7 @@ public class CmBatteryBar extends ProgressBar implements Animatable, Runnable {
         if (mBatteryCharging && mBatteryLevel < 100) {
             start();
         } else {
-            sto\p();
+            stop();
         }
     }
 
