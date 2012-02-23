@@ -50,6 +50,7 @@ LOCAL_SRC_FILES:= \
 	GraphicBufferMapper.cpp \
 	GraphicLog.cpp \
 	InputTransport.cpp \
+	IOverlay.cpp \
 	PixelFormat.cpp \
 	Rect.cpp \
 	Region.cpp

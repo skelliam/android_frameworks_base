@@ -20,6 +20,7 @@
 #include <binder/Parcel.h>
 #include <utils/Errors.h>
 #include <binder/MemoryHeapBase.h>
+#include <cutils/ashmem.h>
 
 #include <ui/Overlay.h>
 
@@ -36,6 +37,11 @@ Overlay::Overlay(overlay_set_fd_hook set_fd,
     queue_buffer_hook = queue_buffer;
     hook_data = data;
     mStatus = NO_ERROR;
+    
+    mapping_data = new mapping_data_t;
+    
+    ash_fd = ashmem_create_region("Overlay_region", dataSize);
+    this->data = mmap(NULL, dataSize, PROT_READ | PROT_WRITE, MAP_SHARED, ash_fd, 0);
 }
 
 Overlay::~Overlay() {
@@ -43,28 +49,33 @@ Overlay::~Overlay() {
 
 status_t Overlay::dequeueBuffer(void** buffer)
 {
+    LOGD("%s: %p", __FUNCTION__, buffer);
     return mStatus;
 }
 
 status_t Overlay::queueBuffer(void* buffer)
 {
+    LOGD("%s: %p", __FUNCTION__, buffer);
     if (queue_buffer_hook)
-        queue_buffer_hook(hook_data, buffer);
+        queue_buffer_hook(hook_data, buffer); // TODO buffer shall not be used by hook, it's just a number
     return mStatus;
 }
 
 status_t Overlay::resizeInput(uint32_t width, uint32_t height)
 {
+    LOGD("%s: %d, %d", __FUNCTION__, width, height);
     return mStatus;
 }
 
 status_t Overlay::setParameter(int param, int value)
 {
+    LOGD("%s: %d, %d", __FUNCTION__, param, value);
     return mStatus;
 }
 
 status_t Overlay::setCrop(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
+    LOGD("%s", __FUNCTION__);
     if (set_crop_hook)
         set_crop_hook(hook_data, x, y, w, h);
     return mStatus;
@@ -72,11 +83,13 @@ status_t Overlay::setCrop(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 
 status_t Overlay::getCrop(uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h)
 {
+    LOGD("%s", __FUNCTION__);
     return mStatus;
 }
 
 status_t Overlay::setFd(int fd)
 {
+    LOGD("%s", __FUNCTION__);
     if (set_fd_hook)
         set_fd_hook(hook_data, fd);
     return mStatus;
@@ -84,42 +97,65 @@ status_t Overlay::setFd(int fd)
 
 int32_t Overlay::getBufferCount() const
 {
-    return 0;
+    LOGD("%s: %d", __FUNCTION__, NUM_BUFFERS);
+    return NUM_BUFFERS;
 }
 
 void* Overlay::getBufferAddress(void* buffer)
 {
-    return 0;
+    LOGD("%s: %p", __FUNCTION__, buffer);
+    int index = (int) buffer;
+    if (index <0 || index >= NUM_BUFFERS) {
+	return NULL;
+    } 
+    
+    memset(mapping_data, 0, sizeof(mapping_data));
+    mapping_data->fd = ash_fd;
+    mapping_data->length = BUFFER_SIZE;
+    mapping_data->offset = BUFFER_SIZE * index;
+    mapping_data->ptr = data;
+    
+    LOGD("%s: data pointer: %p", __FUNCTION__, data);
+    
+    return mapping_data;
 }
 
-void Overlay::destroy() {  
+void Overlay::destroy() {
+//free
 }
 
 status_t Overlay::getStatus() const {
+    LOGD("%s", __FUNCTION__);
     return mStatus;
 }
 
 void* Overlay::getHandleRef() const {
+    LOGD("%s", __FUNCTION__);
     return 0;
 }
 
 uint32_t Overlay::getWidth() const {
+    LOGD("%s", __FUNCTION__);
     return 0;
 }
 
 uint32_t Overlay::getHeight() const {
+    LOGD("%s", __FUNCTION__);
     return 0;
 }
 
 int32_t Overlay::getFormat() const {
+    LOGD("%s", __FUNCTION__);
     return 0;
 }
 
 int32_t Overlay::getWidthStride() const {
+    LOGD("%s", __FUNCTION__);
     return 0;
 }
 
 int32_t Overlay::getHeightStride() const {
+    LOGD("%s", __FUNCTION__);
     return 0;
 }
 

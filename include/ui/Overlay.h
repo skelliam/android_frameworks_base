@@ -24,6 +24,7 @@
 #include <binder/IInterface.h>
 #include <utils/RefBase.h>
 #include <utils/threads.h>
+#include <hardware/gralloc.h>
 
 #include <ui/PixelFormat.h>
 
@@ -40,6 +41,13 @@ class IMemory;
 class IMemoryHeap;
 
 // ----------------------------------------------------------------------------
+
+struct mapping_data_t {
+    int fd;
+    size_t length;
+    uint32_t offset;
+    void *ptr;
+};
 
 class Overlay : public virtual RefBase
 {
@@ -94,6 +102,14 @@ private:
     void* hook_data;
 
     status_t mStatus;
+    mapping_data_t *mapping_data;
+    
+    // ashmem region
+    int ash_fd;
+    void* data;
+    static const int NUM_BUFFERS = 8;
+    static const int BUFFER_SIZE = 640*480*4;
+    static const int dataSize = BUFFER_SIZE * NUM_BUFFERS;
 };
 
 // ----------------------------------------------------------------------------
