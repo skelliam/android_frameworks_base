@@ -32,16 +32,29 @@ Overlay::Overlay(overlay_set_fd_hook set_fd,
         void *data)
     : mStatus(NO_INIT)
 {
+    LOGD("%s: Init overlay", __FUNCTION__);
     set_fd_hook = set_fd;
     set_crop_hook = set_crop;
     queue_buffer_hook = queue_buffer;
     hook_data = data;
     mStatus = NO_ERROR;
     
-    mapping_data = new mapping_data_t;
-    
-    ash_fd = ashmem_create_region("Overlay_region", dataSize);
-    this->data = mmap(NULL, dataSize, PROT_READ | PROT_WRITE, MAP_SHARED, ash_fd, 0);
+    int fd = ashmem_create_region("Overlay_buffer_region", NUM_BUFFERS * BUFFER_SIZE);
+    if (fd < 0) {
+	LOGE("%s: Cannot create ashmem region", __FUNCTION__);
+	return;
+    }
+    mBuffers = new mapping_data_t[NUM_BUFFERS];
+    for(int i=0; i<NUM_BUFFERS; i++) {
+	mBuffers[i].fd = fd;
+	mBuffers[i].length = BUFFER_SIZE;
+	mBuffers[i].offset = BUFFER_SIZE * i;
+	mBuffers[i].ptr = mmap(NULL, BUFFER_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, BUFFER_SIZE * i);
+	if (mBuffers[i].ptr == MAP_FAILED) {
+	    LOGE("%s: Failed to mmap buffer %d", __FUNCTION__, i);
+	}
+    }
+    LOGD("%s: Init overlay complete", __FUNCTION__);
 }
 
 Overlay::~Overlay() {
@@ -107,21 +120,23 @@ void* Overlay::getBufferAddress(void* buffer)
     int index = (int) buffer;
     if (index <0 || index >= NUM_BUFFERS) {
 	return NULL;
-    } 
+    }
     
-    memset(mapping_data, 0, sizeof(mapping_data));
-    mapping_data->fd = ash_fd;
-    mapping_data->length = BUFFER_SIZE;
-    mapping_data->offset = BUFFER_SIZE * index;
-    mapping_data->ptr = data;
+    //LOGD("%s: fd=%d, length=%d. offset=%d, ptr=%p", __FUNCTION__, mBuffers[index].fd, mBuffers[index].length, mBuffers[index].offset, mBuffers[index].ptr);
     
-    LOGD("%s: data pointer: %p", __FUNCTION__, data);
-    
-    return mapping_data;
+    return &mBuffers[index];
 }
 
 void Overlay::destroy() {
-//free
+    int fd = ashmem_create_region("Overlay_buffer_region", NUM_BUFFERS * BUFFER_SIZE);
+    for(int i=0; i<NUM_BUFFERS; i++) {
+        if( munmap(mBuffers[i].ptr, mBuffers[i].length) < 0) {
+	    LOGD("%s: unmap of buffer %d failed", __FUNCTION__, i);
+	}
+	close(fd);
+    }
+    
+    delete[] mBuffers;
 }
 
 status_t Overlay::getStatus() const {

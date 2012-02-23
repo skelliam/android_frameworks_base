@@ -37,11 +37,6 @@ typedef void (*overlay_queue_buffer_hook)(void *data,
 
 namespace android {
 
-class IMemory;
-class IMemoryHeap;
-
-// ----------------------------------------------------------------------------
-
 struct mapping_data_t {
     int fd;
     size_t length;
@@ -102,14 +97,11 @@ private:
     void* hook_data;
 
     status_t mStatus;
-    mapping_data_t *mapping_data;
     
     // ashmem region
-    int ash_fd;
-    void* data;
     static const int NUM_BUFFERS = 8;
-    static const int BUFFER_SIZE = 640*480*4;
-    static const int dataSize = BUFFER_SIZE * NUM_BUFFERS;
+    static const int BUFFER_SIZE = 640*480*2;
+    mapping_data_t *mBuffers;
 };
 
 // ----------------------------------------------------------------------------
