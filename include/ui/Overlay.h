@@ -100,7 +100,7 @@ private:
     
     // ashmem region
     static const int NUM_BUFFERS = 8;
-    static const int BUFFER_SIZE = 640*480*2;
+    static const int BUFFER_SIZE = 640*480*3;
     mapping_data_t *mBuffers;
 };
 

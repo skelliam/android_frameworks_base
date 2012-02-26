@@ -88,9 +88,11 @@ status_t Overlay::setParameter(int param, int value)
 
 status_t Overlay::setCrop(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
-    LOGD("%s", __FUNCTION__);
-    if (set_crop_hook)
+    LOGD("%s: x=%d, y=%d, w=%d, h=%d", __FUNCTION__, x, y, w, h);
+    if (set_crop_hook) {
+	LOGD("%s: Invoking crop hook", __FUNCTION__);
         set_crop_hook(hook_data, x, y, w, h);
+    }
     return mStatus;
 }
 
@@ -102,7 +104,7 @@ status_t Overlay::getCrop(uint32_t* x, uint32_t* y, uint32_t* w, uint32_t* h)
 
 status_t Overlay::setFd(int fd)
 {
-    LOGD("%s", __FUNCTION__);
+    LOGD("%s: fd=%d", __FUNCTION__, fd);
     if (set_fd_hook)
         set_fd_hook(hook_data, fd);
     return mStatus;
@@ -116,7 +118,7 @@ int32_t Overlay::getBufferCount() const
 
 void* Overlay::getBufferAddress(void* buffer)
 {
-    LOGD("%s: %p", __FUNCTION__, buffer);
+    LOGD("%s: %d", __FUNCTION__, (int)buffer);
     int index = (int) buffer;
     if (index <0 || index >= NUM_BUFFERS) {
 	return NULL;
@@ -128,12 +130,11 @@ void* Overlay::getBufferAddress(void* buffer)
 }
 
 void Overlay::destroy() {
-    int fd = ashmem_create_region("Overlay_buffer_region", NUM_BUFFERS * BUFFER_SIZE);
+    LOGD("%s", __FUNCTION__);
     for(int i=0; i<NUM_BUFFERS; i++) {
         if( munmap(mBuffers[i].ptr, mBuffers[i].length) < 0) {
 	    LOGD("%s: unmap of buffer %d failed", __FUNCTION__, i);
 	}
-	close(fd);
     }
     
     delete[] mBuffers;
