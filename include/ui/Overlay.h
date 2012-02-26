@@ -28,12 +28,8 @@
 
 #include <ui/PixelFormat.h>
 
-typedef void (*overlay_set_fd_hook)(void *data,
-        int fd);
-typedef void (*overlay_set_crop_hook)(void *data,
-        uint32_t x, uint32_t y, uint32_t w, uint32_t h);
 typedef void (*overlay_queue_buffer_hook)(void *data,
-        void* buffer);
+        void* buffer, size_t size);
 
 namespace android {
 
@@ -44,25 +40,25 @@ struct mapping_data_t {
     void *ptr;
 };
 
+typedef void* overlay_buffer_t;
+typedef uint32_t overlay_handle_t;
+
 class Overlay : public virtual RefBase
 {
 public:
-    Overlay(overlay_set_fd_hook set_fd,
-            overlay_set_crop_hook set_crop,
-            overlay_queue_buffer_hook queue_buffer,
-            void* data);
+    Overlay(uint32_t width, uint32_t height, overlay_queue_buffer_hook queue_buffer, void* hook_data);
 
     /* destroys this overlay */
     void destroy();
-    
+
     /* get the HAL handle for this overlay */
-    void* getHandleRef() const;
+    overlay_handle_t getHandleRef() const;
 
     /* blocks until an overlay buffer is available and return that buffer. */
-    status_t dequeueBuffer(void** buffer);
+    status_t dequeueBuffer(overlay_buffer_t* buffer);
 
     /* release the overlay buffer and post it */
-    status_t queueBuffer(void* buffer);
+    status_t queueBuffer(overlay_buffer_t buffer);
 
     /* change the width and height of the overlay */
     status_t resizeInput(uint32_t width, uint32_t height);
@@ -76,7 +72,7 @@ public:
     status_t setFd(int fd);
 
     /* returns the address of a given buffer if supported, NULL otherwise. */
-    void* getBufferAddress(void* buffer);
+    void* getBufferAddress(overlay_buffer_t buffer);
 
     /* get physical informations about the overlay */
     uint32_t getWidth() const;
@@ -86,21 +82,20 @@ public:
     int32_t getHeightStride() const;
     int32_t getBufferCount() const;
     status_t getStatus() const;
-    
+
 private:
     virtual ~Overlay();
 
     // C style hook
-    overlay_set_fd_hook set_fd_hook;
-    overlay_set_crop_hook set_crop_hook;
     overlay_queue_buffer_hook queue_buffer_hook;
     void* hook_data;
 
     status_t mStatus;
-    
+
+    uint32_t width, height;
+
     // ashmem region
-    static const int NUM_BUFFERS = 8;
-    static const int BUFFER_SIZE = 640*480*3;
+    static const uint32_t NUM_BUFFERS = 8;
     mapping_data_t *mBuffers;
 };
 
