@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 The Android Open Source Project
+ * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,54 @@
 
 namespace android {
 
-Overlay::Overlay(uint32_t width, uint32_t height, overlay_queue_buffer_hook queue_buffer, void *hook_data) : mStatus(NO_INIT) {
+int getBppFromOverlayFormat(const OverlayFormats format) {
+    int bpp;
+    switch(format) {
+    case OVERLAY_FORMAT_RGBA8888:
+        bpp=32;
+        break;
+    case OVERLAY_FORMAT_RGB565:
+    case OVERLAY_FORMAT_YUV422I:
+    case OVERLAY_FORMAT_YUV422SP:
+        bpp = 16;
+        break;
+    case OVERLAY_FORMAT_YUV420SP:
+    case OVERLAY_FORMAT_YUV420P:
+        bpp = 12;
+        break;
+    default:
+        bpp = 0;
+    }
+    return bpp;
+}
+
+OverlayFormats getOverlayFormatFromString(const char* name) {
+    OverlayFormats rv = OVERLAY_FORMAT_UNKNOWN;
+    if( strcmp(name, "yuv422sp") == 0 ) {
+        rv = OVERLAY_FORMAT_YUV422SP;
+    } else if( strcmp(name, "yuv420sp") == 0 ) {
+        rv = OVERLAY_FORMAT_YUV420SP;
+    } else if( strcmp(name, "yuv422i-yuyv") == 0 ) {
+        rv = OVERLAY_FORMAT_YUV422I;
+    } else if( strcmp(name, "yuv420p") == 0 ) {
+        rv = OVERLAY_FORMAT_YUV420P;
+    } else if( strcmp(name, "rgb565") == 0 ) {
+        rv = OVERLAY_FORMAT_RGB565;
+    } else if( strcmp(name, "rgba8888") == 0 ) {
+        rv = OVERLAY_FORMAT_RGBA8888;
+    }
+    return rv;
+}
+
+Overlay::Overlay(uint32_t width, uint32_t height, OverlayFormats format, overlay_queue_buffer_hook queue_buffer, void *hook_data) : mStatus(NO_INIT) {
     LOGD("%s: Init overlay", __FUNCTION__);
-    queue_buffer_hook = queue_buffer;
+    this->queue_buffer_hook = queue_buffer;
     this->hook_data = hook_data;
     this->width = width;
     this->height = height;
-    numFreeBuffers = NUM_BUFFERS;
+    this->numFreeBuffers = 0;
 
-    const int BUFFER_SIZE = width * height * 4;
+    const int BUFFER_SIZE = width * height * getBppFromOverlayFormat(format) >> 3;
 
     int fd = ashmem_create_region("Overlay_buffer_region", NUM_BUFFERS * BUFFER_SIZE);
     if (fd < 0) {
@@ -58,7 +97,6 @@ Overlay::Overlay(uint32_t width, uint32_t height, overlay_queue_buffer_hook queu
     pthread_mutex_init(&queue_mutex, NULL);
 
     LOGD("%s: Init overlay complete", __FUNCTION__);
-
     mStatus = NO_ERROR;
 }
 
@@ -67,18 +105,18 @@ Overlay::~Overlay() {
 
 status_t Overlay::dequeueBuffer(overlay_buffer_t* buffer)
 {
-    LOGD("%s: %d", __FUNCTION__, (int)*buffer);
-    int rv = 0;
+    LOGV("%s", __FUNCTION__);
+    int rv = NO_ERROR;
     pthread_mutex_lock(&queue_mutex);
 
-    if (numFreeBuffers < 1) {
+    if (numFreeBuffers < NUM_MIN_FREE_BUFFERS) {
         LOGV("%s: No free buffers", __FUNCTION__);
-        rv = -EPERM;
+        rv = NO_MEMORY;
     } else {
         int index = -1;
         for(uint32_t i = 0; i < NUM_BUFFERS; i++) {
-            if (mQueued[i] == false) {
-                mQueued[i] = true;
+            if (mQueued[i] == true) {
+                mQueued[i] = false;
                 index = i;
                 break;
             }
@@ -87,10 +125,10 @@ status_t Overlay::dequeueBuffer(overlay_buffer_t* buffer)
         if (index >= 0) {
             *((int*)buffer) = index;
             numFreeBuffers--;
-            LOGV("%s: dequeued", __FUNCTION__);
+            LOGV("%s: dequeued buffer %d", __FUNCTION__, index);
         } else {
             LOGE("%s: inconsistent queue state", __FUNCTION__);
-            rv = -EPERM;
+            rv = NO_MEMORY;
         }
     }
 
@@ -100,28 +138,30 @@ status_t Overlay::dequeueBuffer(overlay_buffer_t* buffer)
 
 status_t Overlay::queueBuffer(overlay_buffer_t buffer)
 {
-    LOGD("%s: %d", __FUNCTION__, (int)buffer);
+    LOGV("%s: %d", __FUNCTION__, (int)buffer);
     if ((uint32_t)buffer > NUM_BUFFERS) {
         LOGE("%s: invalid buffer index %d", __FUNCTION__, (uint32_t) buffer);
-        return -1;
+        return INVALID_OPERATION;
     }
 
     if (queue_buffer_hook) {
-        queue_buffer_hook(hook_data, mBuffers[(int)buffer].ptr, width*height*4);
+        queue_buffer_hook(hook_data, mBuffers[(int)buffer].ptr, mBuffers[(int)buffer].length);
     }
 
     pthread_mutex_lock(&queue_mutex);
 
+    int rv;
     if (numFreeBuffers < NUM_BUFFERS) {
-         numFreeBuffers++;
-         mQueued[(int)buffer] = false;
+        numFreeBuffers++;
+        mQueued[(int)buffer] = true;
+        rv = NO_ERROR;
+    } else {
+        LOGW("%s: Attempt to queue more buffers than we have", __FUNCTION__);
+        rv = INVALID_OPERATION;
     }
 
-    int rv = numFreeBuffers;
-
     pthread_mutex_unlock(&queue_mutex);
-    LOGV("%s: numFreeBuffers=%d", __FUNCTION__, rv);
-    return rv;
+    return mStatus; 
 }
 
 status_t Overlay::resizeInput(uint32_t width, uint32_t height)
@@ -138,7 +178,7 @@ status_t Overlay::setParameter(int param, int value)
 
 status_t Overlay::setCrop(uint32_t x, uint32_t y, uint32_t w, uint32_t h)
 {
-    LOGW("%s: x=%d, y=%d, w=%d, h=%d", __FUNCTION__, x, y, w, h);
+    LOGD("%s: x=%d, y=%d, w=%d, h=%d", __FUNCTION__, x, y, w, h);
     return mStatus;
 }
 
@@ -211,13 +251,13 @@ int32_t Overlay::getFormat() const {
 }
 
 int32_t Overlay::getWidthStride() const {
-    LOGD("%s", __FUNCTION__);
-    return 0;
+    LOGW("%s", __FUNCTION__);
+    return width;
 }
 
 int32_t Overlay::getHeightStride() const {
-    LOGD("%s", __FUNCTION__);
-    return 0;
+    LOGW("%s", __FUNCTION__);
+    return height;
 }
 
 // ----------------------------------------------------------------------------
