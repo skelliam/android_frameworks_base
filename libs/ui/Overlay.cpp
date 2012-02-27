@@ -32,6 +32,7 @@ Overlay::Overlay(uint32_t width, uint32_t height, overlay_queue_buffer_hook queu
     this->hook_data = hook_data;
     this->width = width;
     this->height = height;
+    numFreeBuffers = NUM_BUFFERS;
 
     const int BUFFER_SIZE = width * height * 4;
 
@@ -40,7 +41,9 @@ Overlay::Overlay(uint32_t width, uint32_t height, overlay_queue_buffer_hook queu
         LOGE("%s: Cannot create ashmem region", __FUNCTION__);
         return;
     }
+
     mBuffers = new mapping_data_t[NUM_BUFFERS];
+    mQueued = new bool[NUM_BUFFERS];
     for(uint32_t i=0; i<NUM_BUFFERS; i++) {
         mBuffers[i].fd = fd;
         mBuffers[i].length = BUFFER_SIZE;
@@ -49,9 +52,13 @@ Overlay::Overlay(uint32_t width, uint32_t height, overlay_queue_buffer_hook queu
         if (mBuffers[i].ptr == MAP_FAILED) {
             LOGE("%s: Failed to mmap buffer %d", __FUNCTION__, i);
         }
+        mQueued[i]=false;
     }
+
+    pthread_mutex_init(&queue_mutex, NULL);
+
     LOGD("%s: Init overlay complete", __FUNCTION__);
-    
+
     mStatus = NO_ERROR;
 }
 
@@ -61,17 +68,60 @@ Overlay::~Overlay() {
 status_t Overlay::dequeueBuffer(overlay_buffer_t* buffer)
 {
     LOGD("%s: %d", __FUNCTION__, (int)*buffer);
-    *((int*)buffer) = 1; //TODO
-    return mStatus;
+    int rv = 0;
+    pthread_mutex_lock(&queue_mutex);
+
+    if (numFreeBuffers < 1) {
+        LOGV("%s: No free buffers", __FUNCTION__);
+        rv = -EPERM;
+    } else {
+        int index = -1;
+        for(uint32_t i = 0; i < NUM_BUFFERS; i++) {
+            if (mQueued[i] == false) {
+                mQueued[i] = true;
+                index = i;
+                break;
+            }
+        }
+
+        if (index >= 0) {
+            *((int*)buffer) = index;
+            numFreeBuffers--;
+            LOGV("%s: dequeued", __FUNCTION__);
+        } else {
+            LOGE("%s: inconsistent queue state", __FUNCTION__);
+            rv = -EPERM;
+        }
+    }
+
+    pthread_mutex_unlock(&queue_mutex);
+    return rv;
 }
 
 status_t Overlay::queueBuffer(overlay_buffer_t buffer)
 {
     LOGD("%s: %d", __FUNCTION__, (int)buffer);
+    if ((uint32_t)buffer > NUM_BUFFERS) {
+        LOGE("%s: invalid buffer index %d", __FUNCTION__, (uint32_t) buffer);
+        return -1;
+    }
+
     if (queue_buffer_hook) {
         queue_buffer_hook(hook_data, mBuffers[(int)buffer].ptr, width*height*4);
     }
-    return mStatus;
+
+    pthread_mutex_lock(&queue_mutex);
+
+    if (numFreeBuffers < NUM_BUFFERS) {
+         numFreeBuffers++;
+         mQueued[(int)buffer] = false;
+    }
+
+    int rv = numFreeBuffers;
+
+    pthread_mutex_unlock(&queue_mutex);
+    LOGV("%s: numFreeBuffers=%d", __FUNCTION__, rv);
+    return rv;
 }
 
 status_t Overlay::resizeInput(uint32_t width, uint32_t height)
@@ -131,6 +181,8 @@ void Overlay::destroy() {
     }
 
     delete[] mBuffers;
+    delete[] mQueued;
+    pthread_mutex_destroy(&queue_mutex);
 }
 
 status_t Overlay::getStatus() const {

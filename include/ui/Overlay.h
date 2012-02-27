@@ -90,13 +90,19 @@ private:
     overlay_queue_buffer_hook queue_buffer_hook;
     void* hook_data;
 
+    // overlay data
+    static const uint32_t NUM_BUFFERS = 8;
+    uint32_t numFreeBuffers;
+    
     status_t mStatus;
-
     uint32_t width, height;
 
     // ashmem region
-    static const uint32_t NUM_BUFFERS = 8;
     mapping_data_t *mBuffers;
+    bool *mQueued; // true if buffer is currently queued
+    
+    // queue/dequeue mutex
+    pthread_mutex_t queue_mutex;
 };
 
 // ----------------------------------------------------------------------------
