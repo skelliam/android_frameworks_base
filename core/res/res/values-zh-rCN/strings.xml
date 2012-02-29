@@ -137,7 +137,9 @@
     <string name="turn_off_radio" msgid="8198784949987062346">"关闭收音机"</string>
     <string name="screen_lock" msgid="799094655496098153">"屏幕锁定"</string>
     <string name="power_off" msgid="4266614107412865048">"关机"</string>
-    <string name="global_action_screenshot">屏幕截图</string>
+    <string name="reboot_system" product="tablet">"重启平板"</string>
+    <string name="reboot_system" product="default">"重启手机"</string>
+    <string name="global_action_screenshot">"屏幕截图"</string>
     <string name="reboot_reboot">"重启"</string>
     <string name="reboot_recovery">"恢复"</string>
     <string name="reboot_bootloader">"引导"</string>
