@@ -75,7 +75,8 @@ Overlay::Overlay(uint32_t width, uint32_t height, OverlayFormats format, overlay
     this->height = height;
     this->numFreeBuffers = 0;
 
-    const int BUFFER_SIZE = width * height * getBppFromOverlayFormat(format) >> 3;
+    const int reqd_mem = width * height * getBppFromOverlayFormat(format) >> 3;
+    const int BUFFER_SIZE = (reqd_mem + PAGE_SIZE - 1) & (~(PAGE_SIZE - 1));
 
     int fd = ashmem_create_region("Overlay_buffer_region", NUM_BUFFERS * BUFFER_SIZE);
     if (fd < 0) {
