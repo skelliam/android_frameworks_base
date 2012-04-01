@@ -891,13 +891,10 @@ status_t OMXCodec::configureCodec(const sp<MetaData> &meta) {
         }
 
     }
-#ifndef QCOM_HARDWARE
-    if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_DIVX, mMIME) || !strcasecmp(MEDIA_MIMETYPE_VIDEO_DIVX4, mMIME)) {
-#else
+
     if (!strcasecmp(MEDIA_MIMETYPE_VIDEO_DIVX, mMIME) ||
         !strcasecmp(MEDIA_MIMETYPE_VIDEO_DIVX4, mMIME) ||
         !strcasecmp(MEDIA_MIMETYPE_VIDEO_DIVX311, mMIME)) {
-#endif
         LOGV("Setting the QOMX_VIDEO_PARAM_DIVXTYPE params ");
         QOMX_VIDEO_PARAM_DIVXTYPE paramDivX;
         InitOMXParams(&paramDivX);
@@ -1523,7 +1520,13 @@ status_t OMXCodec::setupBitRate(int32_t bitRate) {
             &bitrateType, sizeof(bitrateType));
     CHECK_EQ(err, (status_t)OK);
 
+#ifdef SAMSUNG_CODEC_SUPPORT
+    // Samsung codecs ignore the bitrate if we don't explicitly
+    // tell them that we want a constant bitrate.
+    bitrateType.eControlRate = OMX_Video_ControlRateConstant;
+#else
     bitrateType.eControlRate = OMX_Video_ControlRateVariable;
+#endif
     bitrateType.nTargetBitrate = bitRate;
 
     err = mOMX->setParameter(
