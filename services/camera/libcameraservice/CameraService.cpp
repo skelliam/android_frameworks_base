@@ -16,7 +16,7 @@
 */
 
 #define LOG_TAG "CameraService"
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -84,7 +84,6 @@ static void htcCameraSwitch(int cameraId)
     }
 }
 #endif
-
 // This is ugly and only safe if we never re-create the CameraService, but
 // should be ok for now.
 static CameraService *gCameraService;
@@ -179,7 +178,6 @@ sp<ICamera> CameraService::connect(
 #if defined(BOARD_HAVE_HTC_FFC)
     htcCameraSwitch(cameraId);
 #endif
-
     Mutex::Autolock lock(mServiceLock);
     if (mClient[cameraId] != 0) {
         client = mClient[cameraId].promote();
@@ -521,12 +519,15 @@ void CameraService::Client::disconnect() {
 
     // Release the held ANativeWindow resources.
     if (mPreviewWindow != 0) {
+        LOG1("disconnectWindow()");
         disconnectWindow(mPreviewWindow);
         mPreviewWindow = 0;
         mHardware->setPreviewWindow(mPreviewWindow);
     }
+    LOG1("clear()");
     mHardware.clear();
 
+    LOG1("removeClient()");
     mCameraService->removeClient(mCameraClient);
     mCameraService->setCameraFree(mCameraId);
 
