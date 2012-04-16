@@ -279,13 +279,13 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
                     sendMessage(obtainMessage(MSG_RINGER_MODE_CHANGED));
                 } else if (ACTION_VOLUME_OVERLAY_CHANGED.equals(action)) {
                     int state = (Integer) intent.getExtra("state");
-                    changeOverlayStyle(state, false);
+                    changeOverlayStyle(state);
                 }
             }
         }, filter);
     }
 
-    private void changeOverlayStyle(int newStyle, boolean isConstructorCall) {
+    private void changeOverlayStyle(int newStyle) {
         Log.i("VolumePanel", "changeOverlayStyle : " + newStyle);
         // Don't change to the same style
         if (newStyle == mCurrentOverlayStyle) return;
@@ -796,3 +796,4 @@ public class VolumePanel extends Handler implements OnSeekBarChangeListener, Vie
         resetTimeout();
     }
 }
+
