@@ -21,6 +21,7 @@
 
 #include <ui/PixelFormat.h>
 #include <ui/Region.h>
+#include <ui/DisplayDispatcher.h>
 
 #include <GLES/gl.h>
 #include <GLES/glext.h>
@@ -77,6 +78,7 @@ public:
     void        makeCurrent() const;
     uint32_t    getMaxTextureSize() const;
     uint32_t    getMaxViewportDims() const;
+    sp<DisplayDispatcher>  mDisplayDispatcher;
 #ifdef QCOM_HDMI_OUT
     void        orientationChanged(int orientation) const;
     void        setActionSafeWidthRatio(float asWidthRatio) const;
