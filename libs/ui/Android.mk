@@ -51,9 +51,7 @@ LOCAL_SRC_FILES:= \
 	InputTransport.cpp \
 	PixelFormat.cpp \
 	Rect.cpp \
-	Region.cpp \
-        DisplayDispatcher.cpp \
-        DisplaySemaphore.cpp 
+	Region.cpp
 
 LOCAL_SHARED_LIBRARIES := \
 	libcutils \

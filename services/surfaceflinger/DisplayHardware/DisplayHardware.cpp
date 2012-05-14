@@ -79,7 +79,6 @@ DisplayHardware::DisplayHardware(
       mFlinger(flinger), mFlags(0), mHwc(0)
 {
     init(dpy);
-    mDisplayDispatcher = new DisplayDispatcher();
 }
 
 DisplayHardware::~DisplayHardware()
@@ -390,7 +389,6 @@ void DisplayHardware::flip(const Region& dirty) const
     }
     
     mPageFlipCount++;
-    mDisplayDispatcher->startSwapBuffer();
 
     if (mHwc->initCheck() == NO_ERROR) {
         mHwc->commit();
