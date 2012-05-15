@@ -46,8 +46,22 @@ enum player_type {
     // The shared library with the test player is passed passed as an
     // argument to the 'test:' url in the setDataSource call.
     TEST_PLAYER = 5,
+    CEDARX_PLAYER = 8,
+    CEDARA_PLAYER = 9,
 };
 
+enum player_states {
+	PLAYER_STATE_UNKOWN = 0,
+	PLAYER_STATE_PREPARED,
+	PLAYER_STATE_PAUSE,
+	PLAYER_STATE_PLAYING,
+	PLAYER_STATE_SEEKING,
+	PLAYER_STATE_SUSPEND,
+	PLAYER_STATE_RESUME,
+};
+
+#define MASTER_SCREEN        0
+#define SLAVE_SCREEN         1
 
 #define DEFAULT_AUDIOSINK_BUFFERCOUNT 4
 #define DEFAULT_AUDIOSINK_BUFFERSIZE 1200
