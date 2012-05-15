@@ -25,6 +25,7 @@
 
 #include <utils/KeyedVector.h>
 #include <utils/String8.h>
+#include "mediaplayerinfo.h"
 
 class ANativeWindow;
 
@@ -117,7 +118,8 @@ enum media_info_type {
     MEDIA_INFO_METADATA_UPDATE = 802,
 };
 
-
+#define MASTER_SCREEN        0
+#define SLAVE_SCREEN         1
 
 enum media_player_states {
     MEDIA_PLAYER_STATE_ERROR        = 0,
@@ -153,6 +155,7 @@ class MediaPlayerListener: virtual public RefBase
 {
 public:
     virtual void notify(int msg, int ext1, int ext2, const Parcel *obj) = 0;
+    virtual int  parse3dFile(int type) = 0;
 };
 
 class MediaPlayer : public BnMediaPlayerClient,
@@ -201,6 +204,76 @@ public:
             status_t        attachAuxEffect(int effectId);
             status_t        setParameter(int key, const Parcel& request);
             status_t        getParameter(int key, Parcel* reply);
+    /* add by Gary. start {{----------------------------------- */
+    static  status_t        setScreen(int screen);
+    static  status_t        getScreen(int *screen);
+    static  status_t        isPlayingVideo(bool *playing);
+    /* add by Gary. end   -----------------------------------}} */
+    
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-9-13 14:05:05 */
+    /* expend interfaces about subtitle, track and so on */
+            int             getSubCount();
+            int             getSubList(MediaPlayer_SubInfo *infoList, int count);
+            int             getCurSub();
+            status_t        switchSub(int index);
+            status_t        setSubGate(bool showSub);
+            bool            getSubGate();
+            status_t        setSubColor(int color);
+            int             getSubColor();
+            status_t        setSubFrameColor(int color);
+            int             getSubFrameColor();
+            status_t        setSubFontSize(int size);
+            int             getSubFontSize();
+            status_t        setSubCharset(const char *charset);
+            status_t        getSubCharset(char *charset);
+            status_t        setSubPosition(int percent);
+            int             getSubPosition();
+            status_t        setSubDelay(int time);
+            int             getSubDelay();
+            int             getTrackCount();
+            int             getTrackList(MediaPlayer_TrackInfo *infoList, int count);
+            int             getCurTrack();
+            status_t        switchTrack(int index);
+            status_t        setInputDimensionType(int type);
+            int             getInputDimensionType();
+            status_t        setOutputDimensionType(int type);
+            int             getOutputDimensionType();
+            status_t        setAnaglaghType(int type);
+            int             getAnaglaghType();
+            status_t        getVideoEncode(char *encode);
+            int             getVideoFrameRate();
+            status_t        getAudioEncode(char *encode);
+            int             getAudioBitRate();
+            int             getAudioSampleRate();
+    /* add by Gary. end   -----------------------------------}} */
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-10-9 8:54:30 */
+    /* add callback for parsing 3d source */
+            int             parse3dFile(int type);
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support scale mode */
+            status_t        enableScaleMode(bool enable, int width, int height);
+    /* add by Gary. end   -----------------------------------}} */
+
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-11-14 */
+    /* support adjusting colors while playing video */
+    static  status_t        setVppGate(bool enableVpp);
+    static  bool            getVppGate();
+    static  status_t        setLumaSharp(int value);
+    static  int             getLumaSharp();
+    static  status_t        setChromaSharp(int value);
+    static  int             getChromaSharp();
+    static  status_t        setWhiteExtend(int value);
+    static  int             getWhiteExtend();
+    static  status_t        setBlackExtend(int value);
+    static  int             getBlackExtend();
+    /* add by Gary. end   -----------------------------------}} */
+
 
 private:
             void            clear_l();
@@ -231,6 +304,17 @@ private:
     int                         mVideoHeight;
     int                         mAudioSessionId;
     float                       mSendLevel;
+    /* add by Gary. start {{----------------------------------- */
+    /* 2011-9-28 16:28:24 */
+    /* save properties before creating the real player */
+    bool                        mSubGate;
+    int                         mSubColor;
+    int                         mSubFrameColor;
+    int                         mSubPosition;
+    int                         mSubDelay;
+    int                         mSubFontSize;
+    char                        mSubCharset[MEDIAPLAYER_NAME_LEN_MAX];
+    /* add by Gary. end   -----------------------------------}} */
 };
 
 }; // namespace android

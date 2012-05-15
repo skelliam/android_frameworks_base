@@ -14,7 +14,10 @@ LOCAL_SRC_FILES:=               \
     MidiMetadataRetriever.cpp   \
     MidiFile.cpp                \
     StagefrightPlayer.cpp       \
-    StagefrightRecorder.cpp
+    StagefrightRecorder.cpp     \
+    CedarAPlayerWrapper.cpp     \
+    CedarPlayer.cpp             \
+    SimpleMediaFormatProbe.cpp  \
 
 LOCAL_SHARED_LIBRARIES :=     		\
 	libcutils             			\
@@ -29,7 +32,9 @@ LOCAL_SHARED_LIBRARIES :=     		\
 	libstagefright_omx    			\
 	libstagefright_foundation       \
 	libgui                          \
-	libdl
+	libdl \
+	libCedarX           			\
+	libCedarA           			
 
 LOCAL_STATIC_LIBRARIES := \
         libstagefright_nuplayer                 \
@@ -42,6 +47,12 @@ LOCAL_C_INCLUDES :=                                                 \
 	$(TOP)/frameworks/base/media/libstagefright/include             \
 	$(TOP)/frameworks/base/media/libstagefright/rtsp                \
 	$(TOP)/external/tremolo/Tremolo \
+	$(TOP)/external/cedarx/CedarXAndroid/IceCreamSandwich \
+	$(TOP)/external/cedarx/CedarX/include \
+	$(TOP)/external/cedarx/include/include_audio \
+	$(TOP)/external/cedarx/include/include_cedarv \
+	$(TOP)/external/cedarx/CedarA \
+	$(TOP)/external/cedarx/CedarA/include \
 
 LOCAL_MODULE:= libmediaplayerservice
 
