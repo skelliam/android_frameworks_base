@@ -181,6 +181,8 @@ public:
                                                             int orientation, uint32_t flags);
     virtual int                         setOrientation(DisplayID dpy, int orientation, uint32_t flags);
     virtual bool                        authenticateSurfaceTexture(const sp<ISurfaceTexture>& surface) const;
+    virtual int                         setDisplayProp(int cmd,int param0,int param1,int param2);
+    virtual int                         getDisplayProp(int cmd,int param0,int param1);
 
 #ifdef QCOM_HDMI_OUT
     //HDMI Specific
@@ -223,6 +225,9 @@ public:
 
     inline int  getUseDithering() const { return mUseDithering; }
 
+    int         setDisplayParameter(uint32_t cmd,uint32_t  value);
+
+    uint32_t    getDisplayParameter(uint32_t cmd);
 
     class MessageDestroyGLTexture : public MessageBase {
         GLuint texture;

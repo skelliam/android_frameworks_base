@@ -40,7 +40,8 @@ public:
 
     status_t setDefaultBufferSize(uint32_t w, uint32_t h);
     status_t setDefaultBufferFormat(uint32_t format);
-
+    bool     usehwcomposer;
+    bool     usehwinit;
 public:
     virtual status_t setBufferCount(int bufferCount);
 
@@ -57,6 +58,11 @@ protected:
 
     virtual status_t connect(int api,
             uint32_t* outWidth, uint32_t* outHeight, uint32_t* outTransform);
+    virtual status_t disconnect(int api);
+
+    virtual int      setParameter(uint32_t cmd,uint32_t value);
+
+    virtual uint32_t getParameter(uint32_t cmd);
 };
 
 // ---------------------------------------------------------------------------

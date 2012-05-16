@@ -128,6 +128,10 @@ protected:
     // connected to the specified client API.
     virtual status_t disconnect(int api) = 0;
 
+    virtual int      setParameter(uint32_t cmd,uint32_t value) = 0;
+
+    virtual uint32_t getParameter(uint32_t cmd) = 0;
+
 #ifdef QCOM_HARDWARE
     // performQcomOperation performs Qcom specific operations. The actual
     // operation to be performed depends on the operation specified.
