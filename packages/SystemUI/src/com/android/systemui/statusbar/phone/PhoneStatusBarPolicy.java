@@ -149,11 +149,8 @@ public class PhoneStatusBarPolicy {
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
         filter.addAction(TtyIntent.TTY_ENABLED_CHANGE_ACTION);
-		filter.addAction(Intent.ACTION_HDMISTATUS_CHANGED);
-		filter.addAction(Intent.ACTION_TVDACSTATUS_CHANGED);
         mContext.registerReceiver(mIntentReceiver, filter, null, mHandler);
-		mDisplayManager = (DisplayManager) mContext.getSystemService(Context.DISPLAY_SERVICE);
-		mDispHotPolicy = new StatusBarPadHotPlug();
+
 
         // storage
         mStorageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
