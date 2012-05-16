@@ -28,7 +28,7 @@
 #include <EGL/eglext.h>
 
 #include <pixelflinger/pixelflinger.h>
-#include <ui/DisplayDispatcher.h>
+
 #include "GLExtensions.h"
 
 #include "DisplayHardware/DisplayHardwareBase.h"
@@ -93,7 +93,7 @@ public:
 
     // Hardware Composer
     HWComposer& getHwComposer() const;
-    sp<DisplayDispatcher>  mDisplayDispatcher;
+    
     status_t compositionComplete() const;
     
     Rect getBounds() const {
