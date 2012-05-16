@@ -162,7 +162,11 @@ public class PhoneStatusBarPolicy {
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
         filter.addAction(TtyIntent.TTY_ENABLED_CHANGE_ACTION);
+		filter.addAction(Intent.ACTION_HDMISTATUS_CHANGED);
+		filter.addAction(Intent.ACTION_TVDACSTATUS_CHANGED);
         mContext.registerReceiver(mIntentReceiver, filter, null, mHandler);
+		mDisplayManager = (DisplayManager) mContext.getSystemService(Context.DISPLAY_SERVICE);
+		mDispHotPolicy = new StatusBarPadHotPlug();
 
         // storage
         mStorageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
@@ -203,23 +207,6 @@ public class PhoneStatusBarPolicy {
         mService.setIcon("volume", R.drawable.stat_sys_ringer_silent, 0, null);
         mService.setIconVisibility("volume", false);
         updateVolume();
-
-        IntentFilter filter = new IntentFilter();
-
-        // Register for Intent broadcasts for...
-        filter.addAction(Intent.ACTION_ALARM_CHANGED);
-        filter.addAction(Intent.ACTION_SYNC_STATE_CHANGED);
-        filter.addAction(AudioManager.RINGER_MODE_CHANGED_ACTION);
-        filter.addAction(AudioManager.VIBRATE_SETTING_CHANGED_ACTION);
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
-        filter.addAction(TtyIntent.TTY_ENABLED_CHANGE_ACTION);
-		filter.addAction(Intent.ACTION_HDMISTATUS_CHANGED);
-		filter.addAction(Intent.ACTION_TVDACSTATUS_CHANGED);
-        mContext.registerReceiver(mIntentReceiver, filter, null, mHandler);
-		mDisplayManager = (DisplayManager) mContext.getSystemService(Context.DISPLAY_SERVICE);
-		mDispHotPolicy = new StatusBarPadHotPlug();
 
     }
 
