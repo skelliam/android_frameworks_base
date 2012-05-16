@@ -391,7 +391,9 @@ void DisplayHardware::flip(const Region& dirty) const
     }
     
     mPageFlipCount++;
+    LOGD("DisplayHardware::flip1");
     mDisplayDispatcher->startSwapBuffer();
+    LOGD("DisplayHardware::flip2");
     if (mHwc->initCheck() == NO_ERROR) {
         mHwc->commit();
     } else {
