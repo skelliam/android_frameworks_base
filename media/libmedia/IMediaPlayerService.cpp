@@ -39,16 +39,14 @@ enum {
     ADD_BATTERY_DATA,
     PULL_BATTERY_DATA,
     /* add by Gary. start {{----------------------------------- */
-    ,
     SET_SCREEN,
     GET_SCREEN,
-    IS_PLAYING_VIDEO
+    IS_PLAYING_VIDEO,
     /* add by Gary. end   -----------------------------------}} */
 
     /* add by Gary. start {{----------------------------------- */
     /* 2011-11-14 */
     /* support adjusting colors while playing video */
-    ,
     SET_VPP_GATE,
     GET_VPP_GATE,
     SET_LUMA_SHARP,
