@@ -79,7 +79,6 @@ DisplayHardware::DisplayHardware(
       mFlinger(flinger), mFlags(0), mHwc(0)
 {
     char property[PROPERTY_VALUE_MAX];
-    
     init(dpy);
     mDisplayDispatcher  = NULL;
     
@@ -182,7 +181,6 @@ void DisplayHardware::init(uint32_t dpy)
     // initialize EGL
     EGLint attribs[] = {
             EGL_SURFACE_TYPE,       EGL_WINDOW_BIT,
-            EGL_SAMPLES,            4,
             EGL_NONE,               0,
             EGL_NONE
     };

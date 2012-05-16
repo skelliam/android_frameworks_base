@@ -93,7 +93,7 @@ public:
 
     // Hardware Composer
     HWComposer& getHwComposer() const;
-       sp<DisplayDispatcher>  mDisplayDispatcher; 
+        sp<DisplayDispatcher>  mDisplayDispatcher;
     status_t compositionComplete() const;
     
     Rect getBounds() const {
@@ -106,7 +106,6 @@ public:
 
     int setDispProp(int cmd,int param0,int param1,int param2) const;
     int getDispProp(int cmd,int param0,int param1) const;
-
 private:
     void init(uint32_t displayIndex) __attribute__((noinline));
     void fini() __attribute__((noinline));

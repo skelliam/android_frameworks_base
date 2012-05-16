@@ -114,9 +114,9 @@ status_t HWComposer::prepare() const {
         size_t count = mList->numHwLayers;
         for (size_t i=0 ; i<count ; i++) {
             hwc_layer& l(mList->hwLayers[i]);
-            //if (l.flags & HWC_SKIP_LAYER) {
+            //if ((l.flags & HWC_SKIP_LAYER) {
             //    l.compositionType = HWC_FRAMEBUFFER;
-           // }
+            //}
             switch (l.compositionType) {
                 case HWC_OVERLAY:
                     numOVLayers++;
