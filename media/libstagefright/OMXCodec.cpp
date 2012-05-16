@@ -5886,4 +5886,9 @@ void OMXCodec::setQCELPFormat(int32_t numChannels, int32_t sampleRate, int32_t b
 }
 #endif
 
+extern "C" int  *_ZN7android11LiveSession6seekToEx()	
+{  	
+    return _ZN7android11LiveSession6seekToEx();	  	
+}
+
 }  // namespace android
