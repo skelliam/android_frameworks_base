@@ -18,12 +18,15 @@ package android.media;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.pm.PermissionInfo;
 import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Parcel;
+import android.os.ServiceManager;
+import android.os.RemoteException;
 import android.os.ParcelFileDescriptor;
 import android.os.PowerManager;
 import android.util.Log;
@@ -32,13 +35,15 @@ import android.view.SurfaceHolder;
 import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
+import android.content.pm.IPackageManager;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.lang.ref.WeakReference;
-
+import android.view.WindowManager;
+import android.view.IWindowManager;
 /**
  * MediaPlayer class can be used to control playback
  * of audio/video files and streams. An example on how to use the methods in
@@ -521,6 +526,15 @@ public class MediaPlayer
      */
     public static final boolean BYPASS_METADATA_FILTER = false;
 
+    /* add by Gary. start {{----------------------------------- */
+    /**
+    *  screen name
+    */
+    private IWindowManager 	mWindowManager;
+	private IPackageManager 	mPackageManager;
+    public static final int MASTER_SCREEN = 0;
+    public static final int SLAVE_SCREEN  = 1;
+    /* add by Gary. end   -----------------------------------}} */
     static {
         System.loadLibrary("media_jni");
         native_init();
@@ -563,6 +577,8 @@ public class MediaPlayer
          * It's easier to create it here than in C++.
          */
         native_setup(new WeakReference<MediaPlayer>(this));
+		mWindowManager = IWindowManager.Stub.asInterface(ServiceManager.getService("window"));
+		mPackageManager = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
     }
 
     /*
@@ -631,6 +647,16 @@ public class MediaPlayer
             surface = null;
         }
         _setVideoSurface(surface);
+		if(mWindowManager != null)
+		{
+			try 
+			{
+                mWindowManager.updateRotation(true);
+            } 
+			catch (RemoteException e) 
+            {
+            }
+		}
         updateSurfaceScreenOn();
     }
 

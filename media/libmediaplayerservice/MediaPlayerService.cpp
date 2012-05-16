@@ -217,6 +217,14 @@ typedef struct {
     const player_type playertype;
 } extmap;
 extmap FILE_EXTS [] =  {
+        {".ogg", STAGEFRIGHT_PLAYER},
+        {".mp3", STAGEFRIGHT_PLAYER},
+        {".wav", STAGEFRIGHT_PLAYER},
+        {".amr", STAGEFRIGHT_PLAYER},
+        {".flac", STAGEFRIGHT_PLAYER},
+        {".m4a", STAGEFRIGHT_PLAYER},
+        //{".3gp", STAGEFRIGHT_PLAYER},
+        //{".aac", STAGEFRIGHT_PLAYER},
         {".mid", SONIVOX_PLAYER},
         {".midi", SONIVOX_PLAYER},
         {".smf", SONIVOX_PLAYER},
@@ -410,7 +418,7 @@ status_t MediaPlayerService::AudioOutput::dump(int fd, const Vector<String16>& a
             mStreamType, mLeftVolume, mRightVolume);
     result.append(buffer);
     snprintf(buffer, 255, "  msec per frame(%f), latency (%d)\n",
-            mMsecsPerFrame, (mTrack != 0) ? mTrack->latency() : -1);
+            mMsecsPerFrame, mLatency);
     result.append(buffer);
     snprintf(buffer, 255, "  aux effect id(%d), send level (%f)\n",
             mAuxEffectId, mSendLevel);
@@ -649,8 +657,8 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
     lseek(fd, offset, SEEK_SET);
     r_size = read(fd, buf, sizeof(buf));
 
-    lseek(fd, offset, SEEK_SET);
-    read(fd, buf, sizeof(buf));
+    //lseek(fd, offset, SEEK_SET);
+    //read(fd, buf, sizeof(buf));
     lseek(fd, offset, SEEK_SET);
 
     long ident = *((long*)buf);
