@@ -24,6 +24,7 @@
 
 #include <system/audio.h>
 
+#include <CedarXRecorder.h>
 namespace android {
 
 class Camera;
@@ -187,6 +188,9 @@ private:
     void clipNumberOfAudioChannels();
     void setDefaultProfileIfNecessary();
 
+private:	
+	CedarXRecorder * mpCedarXRecorder;
+	bool			 mbHWEncoder;
 
     StagefrightRecorder(const StagefrightRecorder &);
     StagefrightRecorder &operator=(const StagefrightRecorder &);
