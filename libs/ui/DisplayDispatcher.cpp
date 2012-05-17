@@ -153,12 +153,10 @@ namespace android
 	    err = hw_get_module(DISPLAY_HARDWARE_MODULE_ID, (hw_module_t const**)&module);
 	    if (err == 0) 
 	    {
-            //LOGD("DisplayDispatcher createing1 err = %d!\n",err);
-            
 		    err = display_open(module, &mDevice);
 		    if (err == 0) 
 		    {
-		    	LOGE("Open Display Device Failed!\n");
+		    	LOGE("Open Display Device Succesfully!\n");
 		    } 
 	    } 
         else
@@ -166,8 +164,6 @@ namespace android
             LOGD("hw_get display module Failed!\n");
         }
 	    
-	    //LOGD("DisplayDispatcher createing err2 = %d!\n",err);
-
         mThread = new DisplayDispatcherThread(mDevice);
         result = mThread->run("DisplayDispatcheR", PRIORITY_HIGHEST);
 	    if (result) 
