@@ -338,6 +338,13 @@ int SurfaceTextureClient::perform(int operation, va_list args)
     case NATIVE_WINDOW_API_DISCONNECT:
         res = dispatchDisconnect(args);
         break;
+    case NATIVE_WINDOW_SETPARAMETER:
+        res = dispatchSetParameter(args);
+        break;
+
+    case NATIVE_WINDOW_GETPARAMETER:
+        res = dispatchGetParameter(args);
+        break;    
     default:
 #ifdef QCOM_HARDWARE
         res = dispatchPerformQcomOperation(operation, args);
@@ -595,7 +602,7 @@ int SurfaceTextureClient::setBuffersDimensions(int w, int h)
     mReqWidth = w;
     mReqHeight = h;
 
-    status_t err = mSurfaceTexture->setCrop(Rect(0, 0));
+    status_t err = mSurfaceTexture->setCrop(Rect(w, h));
     LOGE_IF(err, "ISurfaceTexture::setCrop(...) returned %s", strerror(-err));
 
     return err;
