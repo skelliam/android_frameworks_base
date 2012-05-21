@@ -17,7 +17,7 @@
 
 // Proxy for media player implementations
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "MediaPlayerService"
 #include <utils/Log.h>
 
@@ -684,17 +684,14 @@ player_type getPlayerType(int fd, int64_t offset, int64_t length)
         EAS_Shutdown(easdata);
     }
 
-    file_format = audio_format_detect((unsigned char*)buf, r_size);
-    
-    LOGE("getPlayerType: %d",file_format);
-
-    if(file_format <= MEDIA_FORMAT_STAGEFRIGHT_MAX && file_format >= MEDIA_FORMAT_STAGEFRIGHT_MIN){
-    	LOGE("use STAGEFRIGHT_PLAYER");
+        file_format = audio_format_detect((unsigned char*)buf, r_size);
+    LOGV("getPlayerType: %d",file_format);
+    if(file_format < MEDIA_FORMAT_STAGEFRIGHT_MAX && file_format > MEDIA_FORMAT_STAGEFRIGHT_MIN){
+    	LOGV("use STAGEFRIGHT_PLAYER");
     	return STAGEFRIGHT_PLAYER;
     }
-
-    if(file_format <= MEDIA_FORMAT_CEDARA_MAX && file_format >= MEDIA_FORMAT_CEDARA_MIN) {
-    	LOGE("use CEDARA_PLAYER");
+    else if(file_format < MEDIA_FORMAT_CEDARA_MAX && file_format > MEDIA_FORMAT_CEDARA_MIN){
+    	LOGV("use CEDARA_PLAYER");
     	return CEDARA_PLAYER;
     }
 
@@ -706,7 +703,7 @@ player_type getPlayerType(const char* url)
     if (TestPlayerStub::canBeUsed(url)) {
         return TEST_PLAYER;
     }
-#if 1
+#if 0
     if (!strncasecmp("http://", url, 7)
             || !strncasecmp("https://", url, 8)) {
         size_t len = strlen(url);
@@ -806,12 +803,6 @@ sp<MediaPlayerBase> MediaPlayerService::Client::createPlayer(player_type playerT
 status_t MediaPlayerService::Client::setDataSource(
         const char *url, const KeyedVector<String8, String8> *headers)
 {
-
-    int r_size;
-    int file_format;
-    char buf[2048];
-    sp<MediaPlayerBase> p;
-
     LOGV("setDataSource(%s)", url);
     if (url == NULL)
         return UNKNOWN_ERROR;
@@ -840,18 +831,10 @@ status_t MediaPlayerService::Client::setDataSource(
         return mStatus;
     } else {
         player_type playerType = getPlayerType(url);
-        LOGV("player type1 = %d", playerType);
+        LOGV("player type = %d", playerType);
 
-        file_format = audio_format_detect((unsigned char*)buf, r_size);
-        LOGE("file_format:%i", file_format);
-        if (file_format <= MEDIA_FORMAT_STAGEFRIGHT_MAX && file_format >= MEDIA_FORMAT_STAGEFRIGHT_MIN) {
-            p = createPlayer(STAGEFRIGHT_PLAYER);
-        } else {
-            // else use other player
-            p = createPlayer(playerType);
-        }
-            
-
+        // create the right type of player
+        sp<MediaPlayerBase> p = createPlayer(playerType);
         if (p == NULL) return NO_INIT;
 
         if (!p->hardwareOutput()) {
@@ -859,7 +842,7 @@ status_t MediaPlayerService::Client::setDataSource(
             static_cast<MediaPlayerInterface*>(p.get())->setAudioSink(mAudioOutput);
         }
 
-        LOGD("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
+
 
         p->setSubGate(mSubGate);
         p->setSubColor(mSubColor);
@@ -868,15 +851,24 @@ status_t MediaPlayerService::Client::setDataSource(
         p->setSubDelay(mSubDelay);
         p->setSubFontSize(mSubFontSize);
         p->setSubCharset(mSubCharset);
+
+
+
         p->setParse3dFileCallback(this, parse3dFile);
+
+
+
         p->enableScaleMode(mEnableScaleMode, mScaleWidth, mScaleHeight);
+
+
+
+        LOGD("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
         p->setScreen(mScreen);
         p->setVppGate(mVppGate);
         p->setLumaSharp(mLumaSharp);
         p->setChromaSharp(mChromaSharp);
         p->setWhiteExtend(mWhiteExtend);
         p->setBlackExtend(mBlackExtend);
-
 
         // now set data source
         LOGV(" setDataSource");
@@ -917,7 +909,7 @@ status_t MediaPlayerService::Client::setDataSource(int fd, int64_t offset, int64
     }
 
     player_type playerType = getPlayerType(fd, offset, length);
-    LOGV("player type2 = %d", playerType);
+    LOGV("player type = %d", playerType);
 
     // create the right type of player
     sp<MediaPlayerBase> p = createPlayer(playerType);
@@ -937,10 +929,8 @@ status_t MediaPlayerService::Client::setDataSource(int fd, int64_t offset, int64
 
 status_t MediaPlayerService::Client::setDataSource(
         const sp<IStreamSource> &source) {
-
     // create the right type of player
     sp<MediaPlayerBase> p = createPlayer(NU_PLAYER);
-    LOGE("NU_PLAYER");
 
     if (p == NULL) {
         return NO_INIT;
@@ -951,7 +941,7 @@ status_t MediaPlayerService::Client::setDataSource(
         static_cast<MediaPlayerInterface*>(p.get())->setAudioSink(mAudioOutput);
     }
 
-    LOGD("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
+
     p->setSubGate(mSubGate);
     p->setSubColor(mSubColor);
     p->setSubFrameColor(mSubFrameColor);
@@ -961,6 +951,7 @@ status_t MediaPlayerService::Client::setDataSource(
     p->setSubCharset(mSubCharset);
     p->setParse3dFileCallback(this, parse3dFile);
     p->enableScaleMode(mEnableScaleMode, mScaleWidth, mScaleHeight);
+    LOGD("MediaPlayerService::Client::setDataSource() : screen = %d", mScreen);
     p->setScreen(mScreen);
     p->setVppGate(mVppGate);
     p->setLumaSharp(mLumaSharp);
@@ -971,6 +962,7 @@ status_t MediaPlayerService::Client::setDataSource(
 
     // now set data source
     mStatus = p->setDataSource(source);
+
     if (mStatus == OK) {
         mPlayer = p;
     }
@@ -1337,6 +1329,11 @@ status_t MediaPlayerService::Client::isPlayingVideo(int *playing)
     return OK;
 }
 
+/* add by Gary. end   -----------------------------------}} */
+
+/* add by Gary. start {{----------------------------------- */
+/* 2011-9-15 15:41:36 */
+/* expend interfaces about subtitle, track and so on */
 int MediaPlayerService::Client::getSubCount()
 {
     sp<MediaPlayerBase> p = getPlayer();
