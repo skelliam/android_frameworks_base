@@ -934,6 +934,7 @@ void CameraService::Client::disableMsgType(int32_t msgType) {
 #define CHECK_MESSAGE_INTERVAL 10 // 10ms
 bool CameraService::Client::lockIfMessageWanted(int32_t msgType) {
     int sleepCount = 0;
+#if 0
     while (mMsgEnabled & msgType) {
         if (mLock.tryLock() == NO_ERROR) {
             if (sleepCount > 0) {
@@ -949,6 +950,9 @@ bool CameraService::Client::lockIfMessageWanted(int32_t msgType) {
     }
     LOGW("lockIfMessageWanted(%d): dropped unwanted message", msgType);
     return false;
+#else
+	return true;
+#endif
 }
 
 // ----------------------------------------------------------------------------
