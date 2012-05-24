@@ -343,6 +343,7 @@ void Layer::onDraw(const Region& clip) const
         glBindTexture(currentTextureTarget, mTextureName);
 #else
         glBindTexture(GL_TEXTURE_EXTERNAL_OES, mTextureName);
+#endif
         GLenum filter = GL_NEAREST;
         if (getFiltering() || needsFiltering() || isFixedSize() || isCropped()) {
             // TODO: we could be more subtle with isFixedSize()
@@ -358,10 +359,13 @@ void Layer::onDraw(const Region& clip) const
         glLoadMatrixf(mTextureMatrix);
         glMatrixMode(GL_MODELVIEW);
         glDisable(GL_TEXTURE_2D);
+#endif
+
 #ifdef DECIDE_TEXTURE_TARGET
         glEnable(currentTextureTarget);
 #else
         glEnable(GL_TEXTURE_EXTERNAL_OES);
+#endif
     } else {
 #ifdef DECIDE_TEXTURE_TARGET
         glBindTexture(currentTextureTarget, mFlinger->getProtectedTexName());
@@ -370,13 +374,15 @@ void Layer::onDraw(const Region& clip) const
         glMatrixMode(GL_TEXTURE);
         glLoadIdentity();
         glMatrixMode(GL_MODELVIEW);
+#endif
+
 #ifdef DECIDE_TEXTURE_TARGET
         glEnable(currentTextureTarget);
 #else
         glDisable(GL_TEXTURE_EXTERNAL_OES);
         glEnable(GL_TEXTURE_2D);
     }
-
+#endif
 #ifdef QCOM_HARDWARE
     if(needsDithering()) {
         glEnable(GL_DITHER);
@@ -520,6 +526,8 @@ void Layer::lockPageFlip(bool& recomputeVisibleRegions)
             recomputeVisibleRegions = true;
             return;
         }
+#endif
+
 #ifdef QCOM_HARDWARE
         updateLayerQcomFlags(LAYER_UPDATE_STATUS, true, mLayerQcomFlags);
 #endif
