@@ -26,6 +26,13 @@
 
 namespace android {
 
+#define MASTER_SCREEN        0
+#define SLAVE_SCREEN         1
+	
+#define PROP_CAMERA_KEY             "media.camera.screen"
+#define PROP_MASTER_SCREEN          "master"
+#define PROP_SLAVE_SCREEN           "slave"
+#define PROP_SCREEN_DEFAULT_VALUE   PROP_MASTER_SCREEN
 struct CameraInfo {
     /**
      * The direction that the camera faces to. It should be CAMERA_FACING_BACK
@@ -148,6 +155,8 @@ public:
 
     sp<ICamera>         remote();
 
+    // add for set overlay screen
+    static int setCameraScreen(int screen);
     class RecordingProxy : public BnCameraRecordingProxy
     {
     public:
