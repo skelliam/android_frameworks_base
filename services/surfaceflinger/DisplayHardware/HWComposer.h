@@ -78,7 +78,7 @@ public:
     uint32_t getFlags() const;
 #endif
 #ifdef QCOM_HDMI_OUT
-    void enableHDMIOutput(bool enable);
+    void perform(int event, int value);
 #endif
 
     // for debugging
