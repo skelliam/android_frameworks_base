@@ -78,7 +78,7 @@
     </LinearLayout>
     <View style="@style/StatusBarPanelSettingsPanelSeparator" />
 
-    <!-- Bluetooth -->
+    <!-- Bluetooth
     <LinearLayout
             android:id="@+id/bluetooth"
             style="@style/StatusBarPanelSettingsRow"
@@ -101,7 +101,7 @@
                 android:layout_marginRight="5dp"
                 />
     </LinearLayout>
-    <View style="@style/StatusBarPanelSettingsPanelSeparator" />
+    <View style="@style/StatusBarPanelSettingsPanelSeparator" /> -->
 
     <!-- Rotation lock -->
     <LinearLayout
