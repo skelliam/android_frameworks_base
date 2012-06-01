@@ -57,6 +57,7 @@ import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.os.UEventObserver;
 import android.os.Vibrator;
+import android.media.MediaPlayer;
 import android.provider.Settings;
 
 import com.android.internal.R;
@@ -3451,7 +3452,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
 
         synchronized (mLock) {
-            int sensorRotation = mOrientationListener.getProposedRotation(); // may be -1
+            int sensorRotation;
+
+            if(MediaPlayer.isPlayingVideo()) {
+               sensorRotation = Surface.ROTATION_0;
+            } else {
+               sensorRotation = mOrientationListener.getProposedRotation(); // may be -1
+            }
+
             if (sensorRotation < 0) {
                 sensorRotation = lastRotation;
             }
