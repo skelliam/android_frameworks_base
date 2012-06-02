@@ -419,6 +419,11 @@ int SurfaceTextureClient::dispatchSetBuffersGeometry(va_list args) {
     int h = va_arg(args, int);
     int f = va_arg(args, int);
     int screenid = va_arg(args, int);
+
+    // Some software might not be aware of the new api (seen with flash)
+    if (screenid == w)
+        screenid = 0;
+
     int err = setBuffersDimensions(w, h);
     if (err != 0) {
         return err;
