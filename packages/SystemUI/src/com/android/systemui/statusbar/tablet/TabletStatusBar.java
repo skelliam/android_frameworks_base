@@ -236,6 +236,8 @@ public class TabletStatusBar extends StatusBar implements
 
         if (mHasDockBattery) {
             mDockBatteryController.addIconView((ImageView)mNotificationPanel.findViewById(R.id.dock_battery));
+            mDockBatteryController.addLabelView(
+                    (TextView)mNotificationPanel.findViewById(R.id.dock_battery_text));
         }
         // Bt
         mBluetoothController.addIconView(
@@ -573,6 +575,8 @@ public class TabletStatusBar extends StatusBar implements
         if (mHasDockBattery) {
             mDockBatteryController = new DockBatteryController(mContext);
             mDockBatteryController.addIconView((ImageView)sb.findViewById(R.id.dock_battery));
+            mDockBatteryController.addLabelView(
+                    (TextView)sb.findViewById(R.id.dock_battery_text));
         }
 
         mBluetoothController = new BluetoothController(mContext);
