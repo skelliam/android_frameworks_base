@@ -2324,7 +2324,7 @@ public class PowerManagerService extends IPowerManager.Stub
                 final boolean electrifying =
                         ((mElectronBeamAnimationOff && turningOff) ||
                          (mElectronBeamAnimationOn && turningOn));
-                if (!electrifying && (mAnimateScreenLights && !turningOff)) {
+                if (!electrifying && mAnimateScreenLights) {
                     long now = SystemClock.uptimeMillis();
                     boolean more = mScreenBrightness.stepLocked();
                     if (more) {

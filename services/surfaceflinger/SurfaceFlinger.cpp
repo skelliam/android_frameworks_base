@@ -527,6 +527,9 @@ void SurfaceFlinger::handleConsoleEvents()
 #ifdef QCOM_HDMI_OUT
         updateHwcExternalDisplay(mExtDispOutput);
 #endif
+        // this is a temporary work-around, eventually this should be called
+        // by the power-manager
+        SurfaceFlinger::turnElectronBeamOn(mElectronBeamAnimationMode);
     }
 
     if (what & eConsoleReleased) {
