@@ -187,9 +187,9 @@ public class NetworkManagementService extends INetworkManagementService.Stub
 
         if (hasKernelSupport && shouldEnable) {
             Slog.d(TAG, "enabling bandwidth control");
-            mBandwidthControlEnabled = true;
             try {
                 mConnector.doCommand("bandwidth enable");
+                mBandwidthControlEnabled = true;
             } catch (NativeDaemonConnectorException e) {
                 Log.wtf(TAG, "problem enabling bandwidth controls", e);
             }
@@ -1046,9 +1046,8 @@ public class NetworkManagementService extends INetworkManagementService.Stub
         mContext.enforceCallingOrSelfPermission(
                 android.Manifest.permission.CHANGE_WIFI_STATE, "NetworkManagementService");
         try {
-            String softApIface = SystemProperties.get("wifi.ap.interface", wlanIface);
             mConnector.doCommand("softap stopap");
-            mConnector.doCommand("softap stop " + softApIface);
+            mConnector.doCommand("softap stop " + wlanIface);
             wifiFirmwareReload(wlanIface, "STA");
         } catch (NativeDaemonConnectorException e) {
             throw new IllegalStateException("Error communicating to native daemon to stop soft AP",
