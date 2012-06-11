@@ -143,4 +143,7 @@
     <!-- Default for HDMI resolution -->
     <string name="def_hdmi_resolution">auto</string>
 
+    <!-- Default for Accelerometer coordinate -->
+    <string name="def_accelerometer_coordinate">default</string>
+
 </resources>

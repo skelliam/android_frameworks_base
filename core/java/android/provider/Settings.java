@@ -2178,6 +2178,12 @@ public final class Settings {
         */
         public static final String HDMI_RESOLUTION = "hdmi_resolution";
 
+	/**
+	 * To use default or special accelerometer coordinate system
+	 * @hide
+	 */
+	 public static final String ACCELEROMETER_COORDINATE = "accelerometer_coordinate";
+
         /**
          * Use the Notification Power Widget? (Who wouldn't!)
          *
