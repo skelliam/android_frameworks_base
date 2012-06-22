@@ -10,9 +10,16 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.IWindowManager;
+import android.view.KeyEvent;
+import android.os.ServiceManager;
+import android.os.RemoteException;
+import android.os.SystemClock;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
 import android.widget.MediaController.MediaPlayerControl;
+import android.view.ViewParent;
+import android.util.Log;
 
 
 /**
@@ -22,6 +29,10 @@ public class HTML5VideoFullScreen extends HTML5VideoView
     implements MediaPlayerControl, MediaPlayer.OnPreparedListener,
     View.OnTouchListener {
 
+	private static final String TAG = "HTML5VideoFullScreen";
+	//add by Bevis
+	private static final boolean ZOOM_BY_VIDEO_RATIO = true;
+	
     // Add this sub-class to handle the resizing when rotating screen.
     private class VideoSurfaceView extends SurfaceView {
 
@@ -149,6 +160,19 @@ public class HTML5VideoFullScreen extends HTML5VideoView
         mPlayer.reset();
         MediaController mc = new FullScreenMediaController(mProxy.getContext(), mLayout);
         mc.setSystemUiVisibility(mLayout.getSystemUiVisibility());
+        
+        if(ZOOM_BY_VIDEO_RATIO){
+        	mPlayer.setOnVideoSizeChangedListener( new MediaPlayer.OnVideoSizeChangedListener() {
+            	public void onVideoSizeChanged(MediaPlayer mp, int width, int height) {
+                	mVideoWidth = mp.getVideoWidth();
+                	mVideoHeight = mp.getVideoHeight();
+                	if (mVideoWidth > 0 && mVideoHeight > 0) {
+                    	mVideoSurfaceView.getHolder().setFixedSize(mVideoWidth, mVideoHeight);
+                	}
+            	}
+    		});
+    	}
+            
         setMediaController(mc);
         mPlayer.setScreenOnWhilePlaying(true);
         prepareDataAndDisplayMode(mProxy);

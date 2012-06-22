@@ -30,6 +30,11 @@ import android.net.http.SslError;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDatabase.CursorFactory;
+import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -49,7 +54,7 @@ class HTML5VideoViewProxy extends Handler
                           MediaPlayer.OnInfoListener,
                           SurfaceTexture.OnFrameAvailableListener {
     // Logging tag.
-    private static final String LOGTAG = "HTML5VideoViewProxy";
+    private static final String TAG = "HTML5VideoViewProxy";
 
     // Message Ids for WebCore thread -> UI thread communication.
     private static final int PLAY                = 100;
@@ -70,6 +75,9 @@ class HTML5VideoViewProxy extends Handler
     // Timer thread -> UI thread
     private static final int TIMEUPDATE = 300;
 
+	//add by Bevis
+	private static final boolean AUTO_FULLSCREEN = true;
+
     // The C++ MediaPlayerPrivateAndroid object.
     int mNativePointer;
     // The handler for WebCore thread messages;
@@ -85,6 +93,7 @@ class HTML5VideoViewProxy extends Handler
     private int mSeekPosition;
     // A helper class to control the playback. This executes on the UI thread!
     private static final class VideoPlayer {
+    	private static final String TAG = "VideoPlayer";
         // The proxy that is currently playing (if any).
         private static HTML5VideoViewProxy mCurrentProxy;
         // The VideoView instance. This is a singleton for now, at least until
@@ -95,7 +104,7 @@ class HTML5VideoViewProxy extends Handler
         // By using the baseLayer and the current video Layer ID, we can
         // identify the exact layer on the UI thread to use the SurfaceTexture.
         private static int mBaseLayer = 0;
-
+		
         private static void setPlayerBuffering(boolean playerBuffering) {
             mHTML5VideoView.setPlayerBuffering(playerBuffering);
         }
@@ -154,7 +163,7 @@ class HTML5VideoViewProxy extends Handler
                     }
                     mHTML5VideoView.pauseAndDispatch(mCurrentProxy);
                     mHTML5VideoView.release();
-                }
+                }                
                 mHTML5VideoView = new HTML5VideoFullScreen(proxy.getContext(),
                         layerId, savePosition, savedIsPlaying);
                 mCurrentProxy = proxy;
@@ -163,7 +172,7 @@ class HTML5VideoViewProxy extends Handler
 
                 mHTML5VideoView.enterFullScreenVideoState(layerId, proxy, webView);
         }
-
+        
         // This is on the UI thread.
         // When native tell Java to play, we need to check whether or not it is
         // still the same video by using videoLayerId and treat it differently.
@@ -175,7 +184,6 @@ class HTML5VideoViewProxy extends Handler
                 currentVideoLayerId = mHTML5VideoView.getVideoLayerId();
                 backFromFullScreenMode = mHTML5VideoView.fullScreenExited();
             }
-
             if (backFromFullScreenMode
                 || currentVideoLayerId != videoLayerId
                 || mHTML5VideoView.surfaceTextureDeleted()) {
@@ -192,10 +200,16 @@ class HTML5VideoViewProxy extends Handler
                     mHTML5VideoView.release();
                 }
                 mCurrentProxy = proxy;
-                mHTML5VideoView = new HTML5VideoInline(videoLayerId, time, false);
-
-                mHTML5VideoView.setVideoURI(url, mCurrentProxy);
-                mHTML5VideoView.prepareDataAndDisplayMode(proxy);
+                if(AUTO_FULLSCREEN){
+                	mHTML5VideoView = new HTML5VideoFullScreen(mCurrentProxy.getContext(), videoLayerId, time, true);
+                	mHTML5VideoView.setVideoURI(url, mCurrentProxy);
+               	 	mHTML5VideoView.enterFullScreenVideoState(videoLayerId, mCurrentProxy, mCurrentProxy.getWebView());
+                }
+                else{
+                	mHTML5VideoView = new HTML5VideoInline(videoLayerId, time, false);
+                	mHTML5VideoView.setVideoURI(url, mCurrentProxy);
+                	mHTML5VideoView.prepareDataAndDisplayMode(proxy);
+                }
             } else if (mCurrentProxy == proxy) {
                 // Here, we handle the case when we keep playing with one video
                 if (!mHTML5VideoView.isPlaying()) {
@@ -245,10 +259,12 @@ class HTML5VideoViewProxy extends Handler
 
         public static void end() {
             if (mCurrentProxy != null) {
-                if (isVideoSelfEnded)
-                    mCurrentProxy.dispatchOnEnded();
-                else
-                    mCurrentProxy.dispatchOnPaused();
+                if (isVideoSelfEnded){
+                	mCurrentProxy.dispatchOnEnded();
+                }
+                else{
+            		mCurrentProxy.dispatchOnPaused();
+            	}
             }
             isVideoSelfEnded = false;
         }
@@ -291,7 +307,7 @@ class HTML5VideoViewProxy extends Handler
         Message msg = Message.obtain(mWebCoreHandler, PAUSED);
         mWebCoreHandler.sendMessage(msg);
     }
-
+     
     public void dispatchOnStopFullScreen() {
         Message msg = Message.obtain(mWebCoreHandler, STOPFULLSCREEN);
         mWebCoreHandler.sendMessage(msg);
@@ -334,8 +350,21 @@ class HTML5VideoViewProxy extends Handler
                 break;
             }
             case ENDED:
-                if (msg.arg1 == 1)
-                    VideoPlayer.isVideoSelfEnded = true;
+                if (msg.arg1 == 1){
+               		if(HTML5VideoView.BREAKPOINT_ON){
+            			if(VideoPlayer.mHTML5VideoView != null){
+                			String url = VideoPlayer.mHTML5VideoView.getVideoUrl();
+                			deleteBreakpoint(url);
+            			}
+                	}
+                	if(AUTO_FULLSCREEN){
+                		WebChromeClient client = mWebView.getWebChromeClient();
+                		if (client != null) {
+                    		client.onHideCustomView();
+                		}
+                	}
+            		VideoPlayer.isVideoSelfEnded = true;
+            	}                    
                 VideoPlayer.end();
                 break;
             case ERROR: {
@@ -709,4 +738,168 @@ class HTML5VideoViewProxy extends Handler
         }
         return false;
     }
+    
+    int getBreakpoint(String url){
+    	BreakpointService breakpointService = new BreakpointService(getContext());
+    	int breakpoint = breakpointService.getBreakpoint(url);
+    	breakpointService.close();
+    	return breakpoint;
+    }
+    
+    void saveBreakpoint(String url, int breakpoint){
+    	BreakpointService breakpointService = new BreakpointService(getContext());
+    	if( breakpointService.getBreakpoint(url) != 0 ) {
+        	breakpointService.update(url, breakpoint);
+        } else {
+        	breakpointService.save(url, breakpoint);
+        }
+        breakpointService.close();
+    }
+    
+    boolean  deleteBreakpoint(String url){
+    	boolean ret = false;
+    	BreakpointService breakpointService = new BreakpointService(getContext());
+    	ret = breakpointService.delete(url);
+    	breakpointService.close();
+    	return ret;
+    }
+}
+
+class BreakpointService {
+	private static final String TAG = "BreakpointService";
+	private final int MAXRECORD = 100;
+    private CustomDbOpenHelper dbOpener;
+
+    public BreakpointService(Context context) {
+    	dbOpener = new CustomDbOpenHelper(context);
+    }
+    
+    public void save(String url, int breakpoint) {
+    	long sysTime = System.currentTimeMillis();
+    	
+    	SQLiteDatabase database = dbOpener.getWritableDatabase();
+    	if(getCount() == MAXRECORD) {
+    		long oldestTime = sysTime;
+    		Cursor cursor = database.query(CustomDbOpenHelper.TAB_PLAYLOG, null, null, null, null, null, null);
+        	if(cursor != null) {
+        		try {
+    		    	while(cursor.moveToNext()) {
+    		    		long recordTime = cursor.getLong(CustomDbOpenHelper.TIME_COLUMN);
+    		    		if(recordTime < oldestTime) {
+    		    			oldestTime = recordTime;
+    		    		}
+    		    	}
+        		} finally {
+        			cursor.close();
+        		}
+        	}
+        	if(oldestTime < sysTime) {
+        		database.execSQL("delete from "+CustomDbOpenHelper.TAB_PLAYLOG+" where "+CustomDbOpenHelper.TIME+"=?"
+        				,new Object[] {oldestTime});
+        	}
+    	}
+    	
+    	database.execSQL("insert into "+CustomDbOpenHelper.TAB_PLAYLOG+"("+
+    			CustomDbOpenHelper.KEY_URL+","+CustomDbOpenHelper.BREAKPOINT+","+CustomDbOpenHelper.TIME+
+    			") values(?,?,?)", new Object[] {url, breakpoint, sysTime});
+    }
+
+    public boolean delete(String url) {
+    	boolean ret = false;
+        SQLiteDatabase database= dbOpener.getWritableDatabase();
+
+        Cursor cursor = database.rawQuery("select * from "+CustomDbOpenHelper.TAB_PLAYLOG+" where "+CustomDbOpenHelper.KEY_URL+"=?"
+        		, new String[]{url});
+    	if(cursor != null) {
+    		database.execSQL("delete from "+CustomDbOpenHelper.TAB_PLAYLOG+" where "+CustomDbOpenHelper.KEY_URL+"=?"
+    			,new Object[] {url});
+    		cursor.close();
+    		
+    		ret = true;
+    	}
+    	
+    	return ret;
+    }
+    
+    public void update(String url, int breakpoint) {
+    	long sysTime = System.currentTimeMillis();
+    	SQLiteDatabase database= dbOpener.getWritableDatabase();
+    	database.execSQL("update "+CustomDbOpenHelper.TAB_PLAYLOG+" set "+
+    			CustomDbOpenHelper.BREAKPOINT+"=?,"+CustomDbOpenHelper.TIME+"=? where "+CustomDbOpenHelper.KEY_URL+"=?"
+    			, new Object[] {breakpoint, sysTime, url});	
+    }
+
+    public int getBreakpoint(String url) {
+    	int ret = 0;
+    	
+        SQLiteDatabase database= dbOpener.getWritableDatabase();
+
+        Cursor cursor = database.rawQuery("select * from "+CustomDbOpenHelper.TAB_PLAYLOG+" where "+CustomDbOpenHelper.KEY_URL+"=?"
+        		, new String[]{url});
+    	if(cursor != null) {
+    		try {
+		    	if(cursor.moveToNext()) {
+		    		ret = cursor.getInt(CustomDbOpenHelper.BREAKPOINT_COLUMN);
+		    	}
+    		} finally {
+    			cursor.close();
+    		}
+    	}
+    	
+    	return ret;
+    }
+    
+    public int getCount() {
+    	long count = 0;
+    	
+    	SQLiteDatabase database= dbOpener.getWritableDatabase();
+
+    	Cursor cursor = database.rawQuery("select count(*) from "+CustomDbOpenHelper.TAB_PLAYLOG, null);
+    	if(cursor != null) {
+    		try {
+		    	if(cursor.moveToLast()) {
+		    		count = cursor.getLong(0);
+		    	}
+    		} finally {
+    			cursor.close();
+    		}
+    	}
+    	
+    	return (int)count;
+    }
+    
+    public void close() {
+    	dbOpener.close();
+    }
+}
+
+class CustomDbOpenHelper extends SQLiteOpenHelper {
+	public static final String TAB_PLAYLOG="playlog";
+	public static final String KEY_URL="url";
+	public static final String BREAKPOINT="breakpoint";
+	public static final String TIME="time";
+	
+	public static final int URL_COLUMN = 0;
+	public static final int BREAKPOINT_COLUMN  = 1;
+	public static final int TIME_COLUMN  = 2;
+	
+	private static final int VERSION = 1;
+	
+	public CustomDbOpenHelper(Context context) {
+		super(context, TAB_PLAYLOG, null, VERSION);
+		// TODO Auto-generated constructor stub
+	}
+	
+	@Override
+	public void onCreate(SQLiteDatabase arg0) {
+		// TODO Auto-generated method stub
+		arg0.execSQL("CREATE TABLE IF NOT EXISTS "+TAB_PLAYLOG+" ("+KEY_URL+" varchar PRIMARY KEY, "+BREAKPOINT+" INTEGR, "+TIME+" LONG)");
+	}
+
+	@Override
+	public void onUpgrade(SQLiteDatabase arg0, int arg1, int arg2) {
+		// TODO Auto-generated method stub
+		arg0.execSQL("DROP TABLE IF EXISTS "+TAB_PLAYLOG);  
+        onCreate(arg0);  
+	}
 }
