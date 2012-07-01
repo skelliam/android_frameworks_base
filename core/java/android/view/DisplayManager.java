@@ -48,12 +48,6 @@ public class DisplayManager
      */
     public static final String EXTRA_HDMISTATUS = "hdmistatus";
     
-    /**
-     * Extra for {@link android.content.Intent#ACTION_TVDACSTATUS_CHANGED}:
-     * integer containing the current health constant.
-     */
-    public static final String EXTRA_TVSTATUS = "tvdacstatus";
-    
     public static final int DISPLAY_DEVICE_ON					 = 0;
 	public static final int DISPLAY_DEVICE_OFF					 = 1;
 		
@@ -62,20 +56,13 @@ public class DisplayManager
 
 	public static final int DISPLAY_OUTPUT_TYPE_NONE			 = 0;
     public static final int DISPLAY_OUTPUT_TYPE_LCD 			 = 1;
-    public static final int DISPLAY_OUTPUT_TYPE_TV 				 = 2;
     public static final int DISPLAY_OUTPUT_TYPE_HDMI			 = 3;
-    public static final int DISPLAY_OUTPUT_TYPE_VGA				 = 4;
                                                             	 
     public static final int DISPLAY_MODE_SINGLE					 = 0;
 	public static final int DISPLAY_MODE_DUALLCD				 = 1;
 	public static final int DISPLAY_MODE_DUALDIFF				 = 2;
 	public static final int DISPLAY_MODE_DUALSAME				 = 3;
 
-	public static final int DISPLAY_TVDAC_NONE					 = 0;
-	public static final int DISPLAY_TVDAC_YPBPR					 = 1;
-	public static final int DISPLAY_TVDAC_CVBS					 = 2;
-	public static final int DISPLAY_TVDAC_SVIDEO				 = 3;
-	
 	public static final int	DISPLAY_TVFORMAT_480I                = 0;
     public static final int DISPLAY_TVFORMAT_576I                = 1;
     public static final int DISPLAY_TVFORMAT_480P                = 2;
@@ -99,20 +86,6 @@ public class DisplayManager
     public static final int DISPLAY_TVFORMAT_PAL_NC              = 0x14;
     public static final int DISPLAY_TVFORMAT_PAL_NC_SVIDEO       = 0x15;
     public static final int DISPLAY_TVFORMAT_PAL_NC_CVBS_SVIDEO  = 0x16;
-    
-    
-    public static final int DISPLAY_VGA_H1680_V1050    			 = 0x17;
-    public static final int DISPLAY_VGA_H1440_V900     			 = 0x18;
-    public static final int DISPLAY_VGA_H1360_V768     			 = 0x19;
-    public static final int DISPLAY_VGA_H1280_V1024    			 = 0x1a;
-    public static final int DISPLAY_VGA_H1024_V768     			 = 0x1b;
-    public static final int DISPLAY_VGA_H800_V600      			 = 0x1c;
-    public static final int DISPLAY_VGA_H640_V480      			 = 0x1d;
-    public static final int DISPLAY_VGA_H1440_V900_RB  			 = 0x1e;
-    public static final int DISPLAY_VGA_H1680_V1050_RB 			 = 0x1f;
-    public static final int DISPLAY_VGA_H1920_V1080_RB 			 = 0x20;
-    public static final int DISPLAY_VGA_H1920_V1080    			 = 0x21;
-    public static final int DISPLAY_VGA_H1280_V720     			 = 0x22;
     
     private IDisplayManager mService;
     private IBinder mToken = new Binder();

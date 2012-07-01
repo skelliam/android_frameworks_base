@@ -146,7 +146,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
 	private final 			PowerManagerService mPM;
 	private IWindowManager 	mWindowManager;
     private int 			mHdmiPlugin;
-    private int 			mTvDacPlugin;
 	private boolean			mDisplayOpen0;
 	private boolean 		mDisplayOpen1;
 	private int				mDisplayMaster;
@@ -175,7 +174,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
     private native int  nativeGetDisplayOpen(int mDisplay);
     private native int  nativeGetDisplayHotPlug(int mDisplay);
 	private native int  nativeGetHdmiHotPlug();
-	private native int  nativeGetTvDacHotPlug();
 	private native int  nativeGetDisplayMode();
 	private native int  nativeGetDisplayMaster();
 	private native int  nativeGetMaxWidthDisplay();
@@ -199,23 +197,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
         ActivityManagerNative.broadcastStickyIntent(intent, null);
     }
 
-	private final void sendTvDacIntent() 
-	{
-        //  Pack up the values and broadcast them to everyone
-        Intent intent = new Intent(Intent.ACTION_TVDACSTATUS_CHANGED);
-        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY
-                | Intent.FLAG_RECEIVER_REPLACE_PENDING);
-		
-        intent.putExtra(DisplayManager.EXTRA_TVSTATUS, mTvDacPlugin);
-
-        if (true) 
-		{
-            Slog.d(TAG, "mTvDacPlugin:" + mTvDacPlugin);
-        }
-
-        ActivityManagerNative.broadcastStickyIntent(intent, null);
-    }
-
 	private final void update_hotplug()
 	{
 		mHdmiPlugin 	= nativeGetHdmiHotPlug();
@@ -223,11 +204,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
 		{
 			sendHdmiIntent();
 		}	
-		mTvDacPlugin 	= nativeGetTvDacHotPlug();
-		if(mTvDacPlugin != 0)
-		{
-			sendTvDacIntent();
-		}
 	}
 	
 	public class DisplayThread extends Thread 
@@ -236,8 +212,7 @@ public class DisplayManagerService extends IDisplayManager.Stub
         private final Context mContext;
         private final PowerManagerService mPM;
         boolean mRunning = false;
-		private	int hdmihotplug;
-		private int tvdachotplug;
+        private int hdmihotplug;
 
         public DisplayThread(Context context,DisplayManagerService service,
                 PowerManagerService pm) 
@@ -251,16 +226,6 @@ public class DisplayManagerService extends IDisplayManager.Stub
 		public boolean hdmiStatusChange()
 		{
 			if(hdmihotplug == mService.getDisplayHdmiHotPlug())
-			{
-				return  false;
-			}
-
-			return  true;
-		}
-
-		public boolean tvStatusChange()
-		{
-			if(tvdachotplug == mService.getDisplayTvDacHotPlug())
 			{
 				return  false;
 			}
@@ -306,28 +271,9 @@ public class DisplayManagerService extends IDisplayManager.Stub
 					//Log.d(TAG,"nochanged hdmihotplug = " + hdmihotplug);
 				}
 
-				//Log.d(TAG,"TV1 System.currentTimeMillis() = " + System.currentTimeMillis());
-				hotplug = nativeGetTvDacHotPlug();
-				if(hotplug >= 0)
-				{
-					tvdachotplug = hotplug;
-				}
-				//Log.d(TAG,"TV2 System.currentTimeMillis() = " + System.currentTimeMillis());
-				if(tvStatusChange())
-				{
-					Log.d(TAG,"changed tvdachotplug = " + tvdachotplug);
-					mService.setDisplayTvDacHotPlug(tvdachotplug);
-//
-					sendTvDacIntent();
-				}
-				else
-				{
-					//Log.d(TAG,"nochanged tvdachotplug = " + tvdachotplug);
-				}
-
 				try 
 				{
-		            Thread.sleep(500);
+		            Thread.sleep(2000);
 		        } 
 		        catch (Exception e) 
 		        {
@@ -460,26 +406,11 @@ public class DisplayManagerService extends IDisplayManager.Stub
 		return mHdmiPlugin;
 	}
 
-	public int getDisplayTvDacPlugStatus(int mDisplay)
-	{
-		return mTvDacPlugin;
-	}
-
 	public void setDisplayHdmiHotPlug(int hotplug)
 	{
 		mHdmiPlugin = hotplug;
 	}
 
-	public int getDisplayTvDacHotPlug()
-	{
-		return mTvDacPlugin;
-	}
-
-	public void setDisplayTvDacHotPlug(int hotplug)
-	{
-		mTvDacPlugin = hotplug;
-	}
-	
 	public int getDisplayHotPlugStatus(int mDisplay)
 	{
 		return nativeGetDisplayHotPlug(mDisplay);
