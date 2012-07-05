@@ -3915,9 +3915,7 @@ public final class ActivityThread {
                 HardwareRenderer.disable(false);
             }
         } else if ((!hwuiWhitelist.equals("0") && !hwuiWhitelist.contains(data.processName))
-                    || hwuiBlacklist.contains(data.processName)
-                    || data.processName.contains("launcher")
-                    || data.processName.contains("trebuchet")) {
+                    || hwuiBlacklist.contains(data.processName)) {
             HardwareRenderer.disable(false);
         }
         
