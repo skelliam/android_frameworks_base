@@ -3899,12 +3899,9 @@ public final class ActivityThread {
         // send up app name; do this *before* waiting for debugger
         Process.setArgV0(data.processName);
         android.ddm.DdmHandleAppName.setAppName(data.processName);
-        // hwui.whitelist allows to restrict the hw renderer usage
-        // only to certain processes (0 - any)
-        // hwui.blacklist allows to disable the hw renderer usage
-        // for certain processes
-        String hwuiWhitelist = SystemProperties.get("hwui.whitelist", "0");
-        String hwuiBlacklist = SystemProperties.get("hwui.blacklist", "0");
+        // hwui.process_list allows to restrict the hw renderer usage
+        // only to certain processes
+        String hwuiProcList = SystemProperties.get("hwui.process_list", "0");
 
         if (data.persistent) {
             // Persistent processes on low-memory devices do not get to
@@ -3914,8 +3911,7 @@ public final class ActivityThread {
             if (!ActivityManager.isHighEndGfx(display)) {
                 HardwareRenderer.disable(false);
             }
-        } else if ((!hwuiWhitelist.equals("0") && !hwuiWhitelist.contains(data.processName))
-                    || hwuiBlacklist.contains(data.processName)) {
+        } else if (!hwuiProcList.equals("0") && !hwuiProcList.contains(data.processName)) {
             HardwareRenderer.disable(false);
         }
         
