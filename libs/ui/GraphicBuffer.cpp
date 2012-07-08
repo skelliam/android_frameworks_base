@@ -131,8 +131,7 @@ status_t GraphicBuffer::reallocate(uint32_t w, uint32_t h, PixelFormat f,
     if (mOwner != ownData)
         return INVALID_OPERATION;
 
-    if (handle && (int32_t)w == width && (int32_t)h == height
-        && f == format && (int32_t)reqUsage == usage)
+    if (handle && w==width && h==height && f==format && reqUsage==usage)
         return NO_ERROR;
 
     if (handle) {
