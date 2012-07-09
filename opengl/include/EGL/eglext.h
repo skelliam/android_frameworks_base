@@ -229,6 +229,7 @@ struct ANativeWindowBuffer;
 #define EGL_NATIVE_BUFFER_ANDROID               0x3140  /* eglCreateImageKHR target */
 #endif
 
+
 #ifdef QCOM_HARDWARE
 #ifndef EGL_EGLEXT_PROTOTYPES
 #define EGL_EGLEXT_PROTOTYPES 1
@@ -236,6 +237,10 @@ struct ANativeWindowBuffer;
 
 #ifndef EGL_ANDROID_get_render_buffer
 #define EGL_ANDROID_get_render_buffer 1
+
+#ifndef EGL_ANDROID_swap_rectangle
+#define EGL_ANDROID_swap_rectangle 1
+
 #ifdef EGL_EGLEXT_PROTOTYPES
 EGLAPI EGLClientBuffer EGLAPIENTRY eglGetRenderBufferANDROID(EGLDisplay dpy, EGLSurface draw);
 #endif
