@@ -260,7 +260,7 @@ static const CodecInfo kDecoderInfo[] = {
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.qcom.7x30.video.decoder.mpeg4" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.qcom.video.decoder.mpeg4" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.TI.Video.Decoder" },
-//    { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.TI.720P.Decoder" },
+    { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.TI.720P.Decoder" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.SEC.MPEG4.Decoder" },
     { MEDIA_MIMETYPE_VIDEO_MPEG4, "OMX.google.mpeg4.decoder" },
     { MEDIA_MIMETYPE_VIDEO_H263, "OMX.TI.DUCATI1.VIDEO.DECODER" },
@@ -273,7 +273,7 @@ static const CodecInfo kDecoderInfo[] = {
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.Nvidia.h264.decode" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.qcom.7x30.video.decoder.avc" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.qcom.video.decoder.avc" },
-//    { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.TI.720P.Decoder" },
+    { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.TI.720P.Decoder" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.TI.Video.Decoder" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.SEC.AVC.Decoder" },
     { MEDIA_MIMETYPE_VIDEO_AVC, "OMX.SEC.FP.AVC.Decoder" },
@@ -717,7 +717,7 @@ sp<MediaSource> OMXCodec::Create(
         }
 #endif
 
-//#ifdef OMAP_COMPAT
+#ifdef OMAP_COMPAT
         if (!strcmp(componentName, "OMX.TI.Video.Decoder")) {
             int32_t width, height;
             bool success = meta->findInt32(kKeyWidth, &width);
@@ -731,7 +731,7 @@ sp<MediaSource> OMXCodec::Create(
                continue;
             }
         }
-//#endif
+#endif
 
         if (!createEncoder
                 && (quirks & kOutputBuffersAreUnreadable)
@@ -1981,7 +1981,7 @@ status_t OMXCodec::setVideoOutputFormat(
 #endif
 #ifdef OMAP_COMPAT
         if (!strncmp("OMX.TI.", mComponentName, 7)) {
-            format.eColorFormat = OMX_COLOR_FormatYUV420Planar;
+            format.eColorFormat = OMX_COLOR_FormatCbYCrY;
         }
 #endif
 
