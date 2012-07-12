@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2008 The Android Open Source Project
+# Copyright (C) 2009 The Android Open Source Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,17 +14,5 @@
 # limitations under the License.
 #
 
-LOCAL_PATH:= $(call my-dir)
-
-include $(CLEAR_VARS)
-
-LOCAL_SRC_FILES := $(call all-java-files-under, src)
-
-LOCAL_JAVA_LIBRARIES := core core-junit framework framework2
-
-LOCAL_MODULE:= android.test.runner
-
-include $(BUILD_JAVA_LIBRARY)
-
-# additionally, build unit tests in a separate .apk
-include $(call all-makefiles-under,$(LOCAL_PATH))
+$(call inherit-product, frameworks/base/data/sounds/AudioPackageElements.mk)
+$(call inherit-product, frameworks/base/data/sounds/AudioPackageStars.mk)
