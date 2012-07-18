@@ -204,7 +204,7 @@ public class AudioSystem
     public static final int DEVICE_OUT_DGTL_DOCK_HEADSET = 0x1000;
     public static final int DEVICE_OUT_USB_ACCESSORY = 0x2000;
     public static final int DEVICE_OUT_USB_DEVICE = 0x4000;
-
+    public static final int DEVICE_OUT_FM_RADIO_TX = 0x20000000;
     public static final int DEVICE_OUT_DEFAULT = 0x8000;
     public static final int DEVICE_OUT_ALL = (DEVICE_OUT_EARPIECE |
                                               DEVICE_OUT_SPEAKER |
