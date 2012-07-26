@@ -410,6 +410,17 @@ public class Display {
     }
 
     /**
+     * Gets maximal supported texture size.
+     * @hide
+     */
+    public int getMaximumTextureSize() {
+        if (SystemProperties.OMAP_ENHANCEMENT) {
+            return mMaximumTextureSize;
+        }
+        return -1;
+    }
+
+    /**
      * If the display is mirrored to an external HDMI display, returns the
      * rotation of that display relative to its natural orientation.
      * @hide
@@ -496,6 +507,7 @@ public class Display {
     /*package*/ float   mDpiX;
     /*package*/ float   mDpiY;
     private Rect        mMirroringRegion = new Rect();
+    private int         mMaximumTextureSize;
     
     private final Point mTmpPoint = new Point();
     private final DisplayMetrics mTmpMetrics = new DisplayMetrics();
