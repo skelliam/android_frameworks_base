@@ -380,7 +380,12 @@ public class Display {
      */
     public int getRawExternalWidth() {
         if (SystemProperties.OMAP_ENHANCEMENT) {
-            return getMirroringRegion().width();
+            int primaryTv = SystemProperties.getInt("persist.hwc.primary.tv", 0);
+            if (primaryTv == 1) {
+                return getRawWidth();
+            } else {
+                return getMirroringRegion().width();
+            }
         } else {
             return 1280;
         }
@@ -393,7 +398,12 @@ public class Display {
      */
     public int getRawExternalHeight() {
         if (SystemProperties.OMAP_ENHANCEMENT) {
-            return getMirroringRegion().height();
+            int primaryTv = SystemProperties.getInt("persist.hwc.primary.tv", 0);
+            if (primaryTv == 1) {
+                return getRawHeight();
+            } else {
+                return getMirroringRegion().height();
+            }
         } else {
             return 720;
         }
