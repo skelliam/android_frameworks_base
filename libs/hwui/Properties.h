@@ -26,7 +26,7 @@
  */
 
 // If turned on, layers drawn inside FBOs are optimized with regions
-#define RENDER_LAYERS_AS_REGIONS 1
+#define RENDER_LAYERS_AS_REGIONS 0
 
 // If turned on, text is interpreted as glyphs instead of UTF-16
 #define RENDER_TEXT_AS_GLYPHS 1
@@ -35,7 +35,7 @@
 #define LAYER_REMOVE_BIGGEST_FIRST 0
 
 // Textures used by layers must have dimensions multiples of this number
-#define LAYER_SIZE 64
+#define LAYER_SIZE 16
 
 // Defines the size in bits of the stencil buffer
 // Note: Only 1 bit is required for clipping but more bits are required
@@ -79,7 +79,7 @@ enum DebugLevel {
 #define PROPERTY_TEXT_WHITE_GAMMA_THRESHOLD "ro.text_gamma.white_threshold"
 
 // TODO: This should be set by a system property
-#define PANEL_BIT_DEPTH 20
+#define PANEL_BIT_DEPTH 16
 
 // Converts a number of mega-bytes into bytes
 #define MB(s) s * 1024 * 1024
