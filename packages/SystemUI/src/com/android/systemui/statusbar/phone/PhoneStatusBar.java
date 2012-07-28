@@ -221,6 +221,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     // on-screen navigation buttons
     private NavigationBarView mNavigationBarView = null;
+    private boolean mHasNavigationBar;
+    boolean checkNavBar;
 
     // the tracker view
     int mTrackingPosition; // the position of the top of the tracking view.
@@ -281,6 +283,8 @@ public class PhoneStatusBar extends BaseStatusBar {
                     Settings.System.STATUS_BAR_BRIGHTNESS_CONTROL), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SCREEN_BRIGHTNESS_MODE), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.ON_SCREEN_BUTTONS), false, this);
             update();
         }
 
@@ -293,11 +297,24 @@ public class PhoneStatusBar extends BaseStatusBar {
             ContentResolver resolver = mContext.getContentResolver();
             mBrightnessControl = Settings.System.getInt(resolver,
                     Settings.System.STATUS_BAR_BRIGHTNESS_CONTROL, 0) != 0;
+            mHasNavigationBar = (Settings.System.getInt(resolver,
+                    Settings.System.ON_SCREEN_BUTTONS, 0) == 1);
             mAutoBrightness = Settings.System.getInt(resolver,
                     Settings.System.SCREEN_BRIGHTNESS_MODE, 0) ==
                     Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC;
+
+            if (mHasNavigationBar && !checkNavBar) {
+                recreateStatusBar();
+            } else if (!mHasNavigationBar && checkNavBar) {
+                checkNavBar = false;
+                WindowManagerImpl.getDefault().removeView(mNavigationBarView);
+                mNavigationBarView = null;
+                recreateStatusBar();
+            }
+
         }
     }
+
 
     private int mNavigationIconHints = 0;
     private final Animator.AnimatorListener mMakeIconsInvisible = new AnimatorListenerAdapter() {
@@ -460,6 +477,7 @@ public class PhoneStatusBar extends BaseStatusBar {
             boolean showNav = mWindowManager.hasNavigationBar();
             if (DEBUG) Slog.v(TAG, "hasNavigationBar=" + showNav);
             if (showNav) {
+                checkNavBar = true;
                 mNavigationBarView =
                     (NavigationBarView) View.inflate(context, R.layout.navigation_bar, null);
 
