@@ -13887,11 +13887,6 @@ public final class ActivityManagerService extends ActivityManagerNative
             adj = ProcessList.FOREGROUND_APP_ADJ;
             schedGroup = Process.THREAD_GROUP_DEFAULT;
             app.adjType = "exec-service";
-        } else if (app.processName.equals("com.android.contacts") || app.processName.equals("com.android.mms")) {
-            // Always running contacts app is  fix delay while start Phone App for incoming call.
-            adj = ProcessList.FOREGROUND_APP_ADJ;
-            schedGroup = Process.THREAD_GROUP_DEFAULT;
-            app.adjType = "foreground-service";
         } else if (activitiesSize > 0) {
             // This app is in the background with paused activities.
             // We inspect activities to potentially upgrade adjustment further below.
