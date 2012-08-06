@@ -351,7 +351,7 @@ public class PowerManagerService extends IPowerManager.Stub
     // could be either static or controllable at runtime
     private static final boolean mSpew = false;
     private static final boolean mDebugProximitySensor = (false || mSpew);
-    private static final boolean mDebugLightSensor = (true || mSpew);
+    private static final boolean mDebugLightSensor = (false || mSpew);
     private static final boolean mDebugLightAnimation = (false || mSpew);
 
     private native void nativeInit();
