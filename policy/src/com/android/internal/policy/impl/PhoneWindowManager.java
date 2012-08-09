@@ -649,6 +649,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.System.ON_SCREEN_BUTTONS), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.ON_SCREEN_BUTTONS_HEIGHT), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.KEY_HOME_LONG_PRESS_ACTION), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.KEY_MENU_ACTION), false, this);
