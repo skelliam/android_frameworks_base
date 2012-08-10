@@ -310,12 +310,12 @@ public class PhoneStatusBar extends BaseStatusBar {
                     Settings.System.HIGH_END_GFX_ENABLED, 0) != 0;
 
             if (mHasNavigationBar && !checkNavBar) {
-                recreateStatusBar();
+                updateNavigationBar();
             } else if (!mHasNavigationBar && checkNavBar) {
                 checkNavBar = false;
                 WindowManagerImpl.getDefault().removeView(mNavigationBarView);
                 mNavigationBarView = null;
-                recreateStatusBar();
+                updateNavigationBar();
             }
 
         }
@@ -483,6 +483,7 @@ public class PhoneStatusBar extends BaseStatusBar {
             boolean showNav = mWindowManager.hasNavigationBar();
             if (DEBUG) Slog.v(TAG, "hasNavigationBar=" + showNav);
             if (showNav && !mRecreating) {
+                checkNavBar = true;
                 mNavigationBarView =
                     (NavigationBarView) View.inflate(context, R.layout.navigation_bar, null);
 
@@ -763,6 +764,33 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         WindowManagerImpl.getDefault().addView(
                 mNavigationBarView, getNavigationBarLayoutParams());
+    }
+
+    private void updateNavigationBar() {
+        mRecreating = false;
+
+        // extract notifications.
+        int nNotifs = mNotificationData.size();
+        ArrayList<Pair<IBinder, StatusBarNotification>> notifications =
+                new ArrayList<Pair<IBinder, StatusBarNotification>>(nNotifs);
+        copyNotifications(notifications, mNotificationData);
+        mNotificationData.clear();
+
+        makeStatusBarView();
+        addNavigationBar();
+
+        // recreate notifications.
+        for (int i = 0; i < nNotifs; i++) {
+            Pair<IBinder, StatusBarNotification> notifData = notifications.get(i);
+            addNotificationViews(notifData.first, notifData.second);
+        }
+
+        setAreThereNotifications();
+
+        mStatusBarContainer.addView(mStatusBarWindow);
+
+        updateExpandedViewPos(EXPANDED_LEAVE_ALONE);
+
     }
 
     private void repositionNavigationBar() {
