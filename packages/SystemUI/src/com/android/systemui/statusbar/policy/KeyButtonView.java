@@ -100,6 +100,20 @@ public class KeyButtonView extends ImageView {
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
     }
 
+            int defaultColor = mContext.getResources().getColor(
+                    com.android.internal.R.color.holo_white_light);
+            ContentResolver resolver = mContext.getContentResolver();
+            mGlowBGColor = Settings.System.getInt(resolver,
+                    Settings.System.NAVIGATION_BAR_GLOW_TINT, defaultColor);
+
+            if (mGlowBGColor == Integer.MIN_VALUE) {
+            	mGlowBGColor = defaultColor;
+            }
+            mGlowBG.setColorFilter(null);
+            mGlowBG.setColorFilter(mGlowBGColor, PorterDuff.Mode.SRC_ATOP);
+        }
+    }
+    
     @Override
     protected void onDraw(Canvas canvas) {
         if (mGlowBG != null) {
@@ -283,6 +297,80 @@ public class KeyButtonView extends ImageView {
         InputManager.getInstance().injectInputEvent(ev,
                 InputManager.INJECT_INPUT_EVENT_MODE_ASYNC);
     }
+<<<<<<< HEAD
+=======
+	
+    class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.NAVIGATION_BAR_BUTTON_ALPHA), false,
+                    this);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(
+                    Settings.System.NAVIGATION_BAR_TINT),
+                    false, this);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(
+                    Settings.System.NAVIGATION_BAR_GLOW_TINT),
+                    false, this);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(
+                    Settings.System.NAVIGATION_BAR_GLOW_DURATION[1]),
+                    false, this);
+            updateSettings();
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            updateSettings();
+        }
+    }
+
+    protected void updateSettings() {
+        ContentResolver resolver = mContext.getContentResolver();
+
+        durationSpeedOff = Settings.System.getInt(resolver,
+                Settings.System.NAVIGATION_BAR_GLOW_DURATION[0], 10);
+        durationSpeedOn = Settings.System.getInt(resolver,
+                Settings.System.NAVIGATION_BAR_GLOW_DURATION[1], 100);
+        BUTTON_QUIESCENT_ALPHA = Settings.System.getFloat(resolver, Settings.System.NAVIGATION_BAR_BUTTON_ALPHA, 0.7f);
+
+        setDrawingAlpha(BUTTON_QUIESCENT_ALPHA);
+
+        if (mGlowBG != null) {
+            int defaultColor = mContext.getResources().getColor(
+                    com.android.internal.R.color.holo_white_light);
+            mGlowBGColor = Settings.System.getInt(resolver,
+                    Settings.System.NAVIGATION_BAR_GLOW_TINT, defaultColor);
+
+            if (mGlowBGColor == Integer.MIN_VALUE) {
+                mGlowBGColor = defaultColor;
+            }
+            mGlowBG.setColorFilter(null);
+            mGlowBG.setColorFilter(mGlowBGColor, PorterDuff.Mode.SRC_ATOP);
+        }
+
+        try {
+            int color = Settings.System.getInt(resolver,
+                    Settings.System.NAVIGATION_BAR_TINT);
+
+            if (color == Integer.MIN_VALUE) {
+                setColorFilter(null);
+            } else {
+                setColorFilter(null);
+                setColorFilter(Settings.System.getInt(resolver,
+                        Settings.System.NAVIGATION_BAR_TINT));
+            }
+        } catch (SettingNotFoundException e) {
+        }
+        invalidate();
+    }
+>>>>>>> 9893cac... SystemUI: fixed glow color to look stock
 }
 
 
