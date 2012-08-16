@@ -178,7 +178,7 @@ public class CdmaLteServiceStateTracker extends CdmaServiceStateTracker {
                         android.provider.Settings.Secure.PREFERRED_NETWORK_MODE,
                         RILConstants.PREFERRED_NETWORK_MODE);
                 if (DBG) log("pollState: network mode here is = " + networkMode);
-                if ((networkMode == RILConstants.NETWORK_MODE_GLOBAL)
+                if ((getSVDO) || (networkMode == RILConstants.NETWORK_MODE_GLOBAL)
                         || (networkMode == RILConstants.NETWORK_MODE_LTE_ONLY)) {
                     pollingContext[0]++;
                     // RIL_REQUEST_DATA_REGISTRATION_STATE
@@ -494,11 +494,11 @@ public class CdmaLteServiceStateTracker extends CdmaServiceStateTracker {
 
     @Override
     public boolean isConcurrentVoiceAndDataAllowed() {
-        if (mLteSS.getRadioTechnology() !=
-                    ServiceState.RIL_RADIO_TECHNOLOGY_1xRTT)
-            return getSVDO;
+        if ((getSVDO) && (mLteSS.getRadioTechnology() !=
+                    ServiceState.RIL_RADIO_TECHNOLOGY_1xRTT))
+            return true;
         else
-            return (mLteSS.getCssIndicator() == 1);
+            return (mRilRadioTechnology == ServiceState.RIL_RADIO_TECHNOLOGY_LTE);
     }
 
     /**
