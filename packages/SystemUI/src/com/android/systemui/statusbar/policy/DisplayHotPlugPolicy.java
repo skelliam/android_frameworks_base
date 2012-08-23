@@ -23,6 +23,4 @@ import android.content.Intent;
 public interface DisplayHotPlugPolicy 
 {
      public void onHdmiPlugChanged(Intent intent);
-	
-	 public void onTvDacPlugChanged(Intent intent);
 }

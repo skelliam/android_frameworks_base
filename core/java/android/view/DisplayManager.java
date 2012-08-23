@@ -52,7 +52,6 @@ public class DisplayManager
      * Extra for {@link android.content.Intent#ACTION_TVDACSTATUS_CHANGED}:
      * integer containing the current health constant.
      */
-    public static final String EXTRA_TVSTATUS = "tvdacstatus";
 
     public static final int DISPLAY_DEVICE_ON                    = 0;
     public static final int DISPLAY_DEVICE_OFF                   = 1;
@@ -62,9 +61,7 @@ public class DisplayManager
 
     public static final int DISPLAY_OUTPUT_TYPE_NONE             = 0;
     public static final int DISPLAY_OUTPUT_TYPE_LCD              = 1;
-    public static final int DISPLAY_OUTPUT_TYPE_TV               = 2;
     public static final int DISPLAY_OUTPUT_TYPE_HDMI             = 3;
-    public static final int DISPLAY_OUTPUT_TYPE_VGA              = 4;
 
     public static final int DISPLAY_MODE_SINGLE                  = 0;
     public static final int DISPLAY_MODE_DUALLCD                 = 1;

@@ -60,7 +60,6 @@ namespace android
             int        openDisplay(int displayno);
             int     closeDisplay(int displayno);
             int     getHdmiStatus(void);
-            int     getTvDacStatus(void);
             int     getDisplayParameter(int displayno, int param);
             int     setMasterDisplay(int displayno);
             int     getMasterDisplay();
@@ -125,11 +124,6 @@ namespace android
             {
                 mDisplayType0     = DISPLAY_DEVICE_LCD;
             }
-            else if(value0 == DISPLAY_DEVICE_TV)
-            {
-                mDisplayType0     = DISPLAY_DEVICE_TV;
-                mDisplayFormat0 = value1;
-            }
             else if(value0 == DISPLAY_DEVICE_HDMI)
             {
                 mDisplayType0     = DISPLAY_DEVICE_HDMI;
@@ -151,19 +145,9 @@ namespace android
             {
                 mDisplayType1     = DISPLAY_DEVICE_LCD;
             }
-            else if(value0 == DISPLAY_DEVICE_TV)
-            {
-                mDisplayType1     = DISPLAY_DEVICE_TV;
-                mDisplayFormat1 = value1;
-            }
             else if(value0 == DISPLAY_DEVICE_HDMI)
             {
                 mDisplayType1     = DISPLAY_DEVICE_HDMI;
-                mDisplayFormat1 = value1;
-            }
-            else if(value0 == DISPLAY_DEVICE_VGA)
-            {
-                mDisplayType1     = DISPLAY_DEVICE_VGA;
                 mDisplayFormat1 = value1;
             }
             else
@@ -228,16 +212,6 @@ namespace android
         if(disp_device)
         {
             return  disp_device->gethdmistatus(disp_device);
-        }
-
-        return  -1;
-    }
-
-    int NativeDisplayManager::getTvDacStatus(void)
-    {
-        if(disp_device)
-        {
-            return  disp_device->gettvdacstatus(disp_device);
         }
 
         return  -1;
@@ -497,22 +471,6 @@ namespace android
     }
 
 
-    static jint getTvDacStatus_native(JNIEnv *env, jobject clazz)
-    {
-        int   ret;
-
-        //ALOGE("Native Display manager already initialized.");
-
-        if (checkDisplayManagerUnitialized(env))
-        {
-            return -1;
-        }
-
-        //ALOGE("getTvDacStatus_native.");
-
-        return  (jint)gNativeDisplayManager->getTvDacStatus();
-    }
-
     static jint getDisplayParameter_native(JNIEnv *env, jobject clazz,int displayno, int param)
     {
         int   ret;
@@ -735,7 +693,6 @@ static JNINativeMethod method_table[] = {
     { "nativeOpenDisplay", "(I)I", (void*)openDisplay_native },
     { "nativeCloseDisplay", "(I)I", (void*)closeDisplay_native },
     { "nativeGetHdmiHotPlug", "()I", (void*)getHdmiStatus_native },
-    { "nativeGetTvDacHotPlug", "()I", (void*)getTvDacStatus_native },
     { "nativeGetDisplayMode", "()I", (void*)getDisplayMode_native },
     { "nativeGetDisplayCount", "()I", (void*)getDisplayCount_native },
     { "nativeSetDisplayMaster", "(I)I", (void*)setDisplayMaster_native },
