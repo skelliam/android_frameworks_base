@@ -33,7 +33,6 @@ interface IDisplayManager
 	int getDisplayCount();
 	boolean getDisplayOpenStatus(int mDisplay);
 	int getDisplayHotPlugStatus(int mDisplay);
-	int getDisplayTvDacPlugStatus(int mDisplay);
 	int getDisplayOutputType(int mDisplay);
 	int getDisplayOutputFormat(int mDisplay);
 	int getDisplayWidth(int mDisplay);
