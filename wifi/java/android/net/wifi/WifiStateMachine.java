@@ -702,7 +702,7 @@ public class WifiStateMachine extends StateMachine {
 
         setInitialState(mInitialState);
 
-        setProcessedMessagesSize(100);
+        setLogRecSize(100);
         if (DBG) setDbg(true);
 
         //start the state machine
@@ -1156,7 +1156,7 @@ public class WifiStateMachine extends StateMachine {
     }
 
     @Override
-    protected boolean recordProcessedMessage(Message msg) {
+    protected boolean recordLogRec(Message msg) {
         //Ignore screen on/off & common messages when driver has started
         if (getCurrentState() == mConnectedState || getCurrentState() == mDisconnectedState) {
             switch (msg.what) {
@@ -1245,14 +1245,14 @@ public class WifiStateMachine extends StateMachine {
            ip settings */
         InterfaceConfiguration ifcg = null;
         try {
-            ifcg = mNwService.getInterfaceConfig(mInterfaceName);
+            ifcg = mNwService.getInterfaceConfig(mTetherInterfaceName);
             if (ifcg != null) {
                 ifcg.setLinkAddress(
                         new LinkAddress(NetworkUtils.numericToInetAddress("0.0.0.0"), 0));
-                mNwService.setInterfaceConfig(mInterfaceName, ifcg);
+                mNwService.setInterfaceConfig(mTetherInterfaceName, ifcg);
             }
         } catch (Exception e) {
-            loge("Error resetting interface " + mInterfaceName + ", :" + e);
+            loge("Error resetting interface " + mTetherInterfaceName + ", :" + e);
         }
 
         if (mCm.untether(mTetherInterfaceName) != ConnectivityManager.TETHER_ERROR_NO_ERROR) {
@@ -1656,7 +1656,7 @@ public class WifiStateMachine extends StateMachine {
             handlePostDhcpSetup();
 
             mDhcpStateMachine.sendMessage(DhcpStateMachine.CMD_STOP_DHCP);
-            mDhcpStateMachine.quit();
+            mDhcpStateMachine.doQuit();
             mDhcpStateMachine = null;
         }
 
@@ -3577,6 +3577,13 @@ public class WifiStateMachine extends StateMachine {
                 case WifiMonitor.NETWORK_DISCONNECTION_EVENT:
                     if (DBG) log("Network connection lost");
                     handleNetworkDisconnect();
+                    break;
+                case WifiMonitor.AUTHENTICATION_FAILURE_EVENT:
+                    // Disregard auth failure events during WPS connection. The
+                    // EAP sequence is retried several times, and there might be
+                    // failures (especially for wps pin). We will get a WPS_XXX
+                    // event at the end of the sequence anyway.
+                    if (DBG) log("Ignore auth failure during WPS connection");
                     break;
                 case WifiMonitor.SUPPLICANT_STATE_CHANGE_EVENT:
                     //Throw away supplicant state changes when WPS is running.
