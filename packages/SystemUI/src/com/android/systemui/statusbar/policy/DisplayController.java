@@ -38,28 +38,25 @@ public class DisplayController extends BroadcastReceiver {
     private static final String TAG = "StatusBar.DisplayController";
 
     private Context mContext;
-    private final  DisplayManager mDisplayManager;
-	private DisplayHotPlugPolicy  mDispHotPolicy = null;
-	private static final boolean SHOW_HDMIPLUG_IN_CALL = true;
-    private static final boolean SHOW_TVPLUG_IN_CALL = true;
+    private final DisplayManager mDisplayManager;
+    private DisplayHotPlugPolicy mDispHotPolicy = null;
+    private static final boolean SHOW_HDMIPLUG_IN_CALL = true;
 
     public DisplayController(Context context) {
         mContext = context;
 
-		mDisplayManager = (DisplayManager) mContext.getSystemService(Context.DISPLAY_SERVICE);
-		mDispHotPolicy = new StatusBarPadHotPlug();
+        mDisplayManager = (DisplayManager) mContext.getSystemService(Context.DISPLAY_SERVICE);
+        mDispHotPolicy = new StatusBarPadHotPlug();
 		
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_HDMISTATUS_CHANGED);
         context.registerReceiver(this, filter);
     }
     
-    private void onHdmiPlugChanged(Intent intent)
-	{
-		mDispHotPolicy.onHdmiPlugChanged(intent);
-	}
+    private void onHdmiPlugChanged(Intent intent) {
+        mDispHotPolicy.onHdmiPlugChanged(intent);
+    }
 	
-
     public void onReceive(Context context, Intent intent) 
     {
         final String action = intent.getAction();
@@ -69,59 +66,49 @@ public class DisplayController extends BroadcastReceiver {
         }
     }
     
-    private class StatusBarPadHotPlug implements DisplayHotPlugPolicy
-    {
-    	StatusBarPadHotPlug()
-    	{
-    		
-    	}
+private class StatusBarPadHotPlug implements DisplayHotPlugPolicy {
+
+    StatusBarPadHotPlug() {}
     	
-    	private void onHdmiPlugIn(Intent intent) 
-		{
-			int maxscreen;
-			int maxhdmimode;
+    private void onHdmiPlugIn(Intent intent) 
+    {
+    	int maxscreen;
+    	int maxhdmimode;
 			
-	        if (SHOW_HDMIPLUG_IN_CALL) 
-			{
-	          	Slog.d(TAG,"onHdmiPlugIn Starting!\n");
-	          	mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
-				maxhdmimode	= mDisplayManager.getMaxHdmiMode();
-	          	mDisplayManager.setDisplayParameter(1,DisplayManager.DISPLAY_OUTPUT_TYPE_HDMI,maxhdmimode);
-		        mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_DUALSAME);
-				maxscreen = mDisplayManager.getMaxWidthDisplay();
-				MediaPlayer.setScreen(1);
-				AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_AUX_DIGITAL);
-				//Camera.setCameraScreen(1);
-		        //mDisplayManager.setDisplayOutputType(0,DisplayManager.DISPLAY_OUTPUT_TYPE_HDMI,DisplayManager.DISPLAY_TVFORMAT_1080P_60HZ);
-	        }
-	    }
+        if (SHOW_HDMIPLUG_IN_CALL) 
+        {
+            Slog.d(TAG,"onHdmiPlugIn Starting!\n");
+            AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_AUX_DIGITAL);
+            mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
+            maxhdmimode = mDisplayManager.getMaxHdmiMode();
+            mDisplayManager.setDisplayParameter(1,DisplayManager.DISPLAY_OUTPUT_TYPE_HDMI,maxhdmimode);
+            mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_DUALSAME);
+            maxscreen = mDisplayManager.getMaxWidthDisplay();
+            MediaPlayer.setScreen(1);
+        }
+    }
 	
-		private void onHdmiPlugOut(Intent intent)
-		{
-			int     maxscreen;
-			
-			Slog.d(TAG,"onHdmiPlugOut Starting!\n");
-			mDisplayManager.setDisplayParameter(1,DisplayManager.DISPLAY_OUTPUT_TYPE_NONE,0);
-	      	mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
-	        mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_SINGLE);
-	        maxscreen = mDisplayManager.getMaxWidthDisplay();
-	        MediaPlayer.setScreen(0);
-			AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_SPEAKER);
-		}
+    private void onHdmiPlugOut(Intent intent)
+    {
+    	int maxscreen;
+    	Slog.d(TAG,"onHdmiPlugOut Starting!\n");
+    	mDisplayManager.setDisplayParameter(1,DisplayManager.DISPLAY_OUTPUT_TYPE_NONE,0);
+    	mDisplayManager.setDisplayParameter(0,DisplayManager.DISPLAY_OUTPUT_TYPE_LCD,0);
+    	mDisplayManager.setDisplayMode(DisplayManager.DISPLAY_MODE_SINGLE);
+    	maxscreen = mDisplayManager.getMaxWidthDisplay();
+    	MediaPlayer.setScreen(0);
+    	AudioSystem.setParameters("routing="+AudioSystem.DEVICE_OUT_SPEAKER);
+    }
 	
-		public void onHdmiPlugChanged(Intent intent)
-		{
-			int   hdmiplug;
-			
-			hdmiplug = intent.getIntExtra(DisplayManager.EXTRA_HDMISTATUS, 0);
-			if(hdmiplug == 1)
-			{
-				onHdmiPlugIn(intent);
-			}
-			else
-			{
-				onHdmiPlugOut(intent);
-			}
-		}
-    }  
+    public void onHdmiPlugChanged(Intent intent)
+    {
+    	int hdmiplug;
+    	hdmiplug = intent.getIntExtra(DisplayManager.EXTRA_HDMISTATUS, 0);
+    	if(hdmiplug == 1) {
+           onHdmiPlugIn(intent);
+    	} else {
+           onHdmiPlugOut(intent);
+        }
+    }
+  }  
 }
