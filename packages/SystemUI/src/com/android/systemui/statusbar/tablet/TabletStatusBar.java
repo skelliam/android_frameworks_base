@@ -591,6 +591,7 @@ public class TabletStatusBar extends BaseStatusBar implements
         mBatteryController = new BatteryController(mContext);
         mDisplayController = new DisplayController(mContext);
         mBatteryController.addIconView((ImageView)sb.findViewById(R.id.battery));
+        mBatteryController.addLabelView((TextView)sb.findViewById(R.id.battery_text));
 
         mHasDockBattery = mContext.getResources().getBoolean(
                 com.android.internal.R.bool.config_hasDockBattery);
