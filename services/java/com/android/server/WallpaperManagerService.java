@@ -530,6 +530,12 @@ class WallpaperManagerService extends IWallpaperManager.Stub {
             throw new IllegalArgumentException("width and height must be > 0");
         }
 
+        int maxWidth = mContext.getResources().getInteger(
+                com.android.internal.R.integer.config_wallpaperMaxWidth);
+        if (maxWidth != -1 && width > maxWidth) {
+            width = maxWidth;
+        }
+
         if (SystemProperties.OMAP_ENHANCEMENT) {
             WindowManager wm = (WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE);
             int maxTextureSize = wm.getDefaultDisplay().getMaximumTextureSize();

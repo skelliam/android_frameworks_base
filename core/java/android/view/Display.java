@@ -386,6 +386,11 @@ public class Display {
             } else {
                 return getMirroringRegion().width();
             }
+        }
+        // Also check height because HDMI cable may be plugged in while we're
+        // in portrait mode.
+        if (getRawWidth() >= 1920 || getRawHeight() >= 1920) {
+            return 1920;
         } else {
             return 1280;
         }
@@ -404,6 +409,9 @@ public class Display {
             } else {
                 return getMirroringRegion().height();
             }
+        }
+        if (getRawWidth() >= 1920 || getRawHeight() >= 1920) {
+            return 1080;
         } else {
             return 720;
         }
