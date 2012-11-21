@@ -718,6 +718,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.System.EXPANDED_DESKTOP_STATE), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.ON_SCREEN_BUTTONS), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.ON_SCREEN_BUTTONS_HEIGHT), false, this);
 
             if (SEPARATE_TIMEOUT_FOR_SCREEN_SAVER) {
                 resolver.registerContentObserver(Settings.Secure.getUriFor(
@@ -1312,10 +1314,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 com.android.internal.R.dimen.status_bar_height);
 
         // Height of the navigation bar when presented horizontally at bottom
-        mNavigationBarHeightForRotation[mPortraitRotation] =
-        mNavigationBarHeightForRotation[mUpsideDownRotation] =
-                mContext.getResources().getDimensionPixelSize(
-                        com.android.internal.R.dimen.navigation_bar_height);
         mNavigationBarHeightForRotation[mLandscapeRotation] =
         mNavigationBarHeightForRotation[mSeascapeRotation] =
                 mContext.getResources().getDimensionPixelSize(
@@ -1474,10 +1472,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                             Settings.System.KEY_APP_SWITCH_LONG_PRESS_ACTION, KEY_ACTION_NOTHING);
                 }
             }
-=======
+
             mHasNavigationBar = (Settings.System.getInt(resolver,
                     Settings.System.ON_SCREEN_BUTTONS, 0) == 1);
->>>>>>> 8e8b409... add option for enable On-Screen Buttons
+            int  mOnScreenButtonsHeight = (Settings.System.getInt(resolver,
+                    Settings.System.ON_SCREEN_BUTTONS_HEIGHT, 48 * DisplayMetrics.DENSITY_DEVICE/DisplayMetrics.DENSITY_DEFAULT)); //48dp dafault value.
+            mNavigationBarHeightForRotation[mPortraitRotation] =
+            mNavigationBarHeightForRotation[mUpsideDownRotation] = mOnScreenButtonsHeight * DisplayMetrics.DENSITY_DEVICE/DisplayMetrics.DENSITY_DEFAULT;
 
             // Configure rotation lock.
             int userRotation = Settings.System.getInt(resolver,
