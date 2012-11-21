@@ -331,12 +331,12 @@ public class PhoneStatusBar extends BaseStatusBar {
                     Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC;
 
             if (mHasNavigationBar && !checkNavBar) {
-                recreateStatusBar();
+                updateNavigationBar();
             } else if (!mHasNavigationBar && checkNavBar) {
                 checkNavBar = false;
                 WindowManagerImpl.getDefault().removeView(mNavigationBarView);
                 mNavigationBarView = null;
-                recreateStatusBar();
+                updateNavigationBar();
             }
 
 >>>>>>> 8e8b409... add option for enable On-Screen Buttons
@@ -504,7 +504,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         try {
             boolean showNav = mWindowManager.hasNavigationBar();
             if (DEBUG) Slog.v(TAG, "hasNavigationBar=" + showNav);
-            if (showNav) {
+            if (showNav && !mRecreating) {
                 checkNavBar = true;
                 mNavigationBarView =
                     (NavigationBarView) View.inflate(context, R.layout.navigation_bar, null);
@@ -838,6 +838,33 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         WindowManagerImpl.getDefault().addView(
                 mNavigationBarView, getNavigationBarLayoutParams());
+    }
+
+    private void updateNavigationBar() {
+        mRecreating = false;
+
+        // extract notifications.
+        int nNotifs = mNotificationData.size();
+        ArrayList<Pair<IBinder, StatusBarNotification>> notifications =
+                new ArrayList<Pair<IBinder, StatusBarNotification>>(nNotifs);
+        copyNotifications(notifications, mNotificationData);
+        mNotificationData.clear();
+
+        makeStatusBarView();
+        addNavigationBar();
+
+        // recreate notifications.
+        for (int i = 0; i < nNotifs; i++) {
+            Pair<IBinder, StatusBarNotification> notifData = notifications.get(i);
+            addNotificationViews(notifData.first, notifData.second);
+        }
+
+        setAreThereNotifications();
+
+        mStatusBarContainer.addView(mStatusBarWindow);
+
+        updateExpandedViewPos(EXPANDED_LEAVE_ALONE);
+
     }
 
     private void repositionNavigationBar() {
