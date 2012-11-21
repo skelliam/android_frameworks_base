@@ -716,6 +716,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.System.HARDWARE_KEY_REBINDING), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.EXPANDED_DESKTOP_STATE), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.ON_SCREEN_BUTTONS), false, this);
+
             if (SEPARATE_TIMEOUT_FOR_SCREEN_SAVER) {
                 resolver.registerContentObserver(Settings.Secure.getUriFor(
                         "screensaver_timeout"), false, this);
@@ -1272,7 +1275,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
     public void setInitialDisplaySize(Display display, int width, int height) {
         mDisplay = display;
-
+        ContentResolver resolver = mContext.getContentResolver();
         int shortSize, longSize;
         if (width > height) {
             shortSize = height;
@@ -1346,8 +1349,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
 
         if (!mHasSystemNavBar) {
-            mHasNavigationBar = mContext.getResources().getBoolean(
-                    com.android.internal.R.bool.config_showNavigationBar);
+              mHasNavigationBar = (Settings.System.getInt(resolver,
+                    Settings.System.ON_SCREEN_BUTTONS, 0) == 1);
             // Allow a system property to override this. Used by the emulator.
             // See also hasNavigationBar().
             String navBarOverride = SystemProperties.get("qemu.hw.mainkeys");
@@ -1471,6 +1474,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                             Settings.System.KEY_APP_SWITCH_LONG_PRESS_ACTION, KEY_ACTION_NOTHING);
                 }
             }
+=======
+            mHasNavigationBar = (Settings.System.getInt(resolver,
+                    Settings.System.ON_SCREEN_BUTTONS, 0) == 1);
+>>>>>>> 8e8b409... add option for enable On-Screen Buttons
 
             // Configure rotation lock.
             int userRotation = Settings.System.getInt(resolver,
