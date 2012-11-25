@@ -49,6 +49,7 @@ public class UsbService extends IUsbManager.Stub {
 
     private UsbDeviceManager mDeviceManager;
     private UsbHostManager mHostManager;
+    private UsbSettingsManager mCurrentSettings;
 
     private final Object mLock = new Object();
 
@@ -70,7 +71,6 @@ public class UsbService extends IUsbManager.Stub {
 
     public UsbService(Context context) {
         mContext = context;
-
         final PackageManager pm = mContext.getPackageManager();
         if (pm.hasSystemFeature(PackageManager.FEATURE_USB_HOST)) {
             mHostManager = new UsbHostManager(context);
@@ -78,6 +78,8 @@ public class UsbService extends IUsbManager.Stub {
         if (new File("/sys/class/android_usb").exists()) {
             mDeviceManager = new UsbDeviceManager(context);
         }
+        else if(new File(Resources.getSystem().getString(com.android.internal.R.string.config_legacyUmsLunFile)).exists())
+            mDeviceManager = new LegacyUsbDeviceManager(context, mCurrentSettings);
 
         setCurrentUser(UserHandle.USER_OWNER);
 
@@ -110,8 +112,6 @@ public class UsbService extends IUsbManager.Stub {
         if (mDeviceManager != null) {
             mDeviceManager.setCurrentSettings(userSettings);
         }
-        else if(new File(Resources.getSystem().getString(com.android.internal.R.string.config_legacyUmsLunFile)).exists())
-            mDeviceManager = new LegacyUsbDeviceManager(context, mSettingsManager);
     }
 
     public void systemReady() {
