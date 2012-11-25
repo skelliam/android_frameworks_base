@@ -2715,6 +2715,12 @@ public final class Settings {
          */
         public static final String STATUS_BAR_IME_SWITCHER = "status_bar_ime_switcher";
 
+         /**
+         * Statusbar State
+         * @hide
+         */
+        public static final String EXPANDED_DESKTOP_STATE = "expanded_desktop_state";
+
         /**
          * Whether to use a separate delay for "slide to unlock" and security
          * lock
@@ -2821,89 +2827,6 @@ public final class Settings {
          */
         public static final String LOCKSCREEN_BACKGROUND = "lockscreen_background";
 
-        /**
-         * Show the weather on the lock screen
-         * @hide
-         */
-        public static final String LOCKSCREEN_WEATHER = "lockscreen_weather";
-
-        /**
-         * Show the current weather location on the lock screen
-         * @hide
-         */
-        public static final String WEATHER_SHOW_LOCATION = "weather_show_location";
-
-        /**
-         * Show the current weather location on the lock screen
-         * @hide
-         */
-        public static final String WEATHER_SHOW_TIMESTAMP = "weather_show_timestamp";
-
-        /**
-         * Use the custom/manually configured weather location
-         * @hide
-         */
-        public static final String WEATHER_USE_CUSTOM_LOCATION = "weather_use_custom_location";
-
-        /**
-         * Stores the custom/manually configured weather location
-         * @hide
-         */
-        public static final String WEATHER_CUSTOM_LOCATION = "weather_custom_location";
-
-        /**
-         * Stores the weather update frequency
-         * @hide
-         */
-        public static final String WEATHER_UPDATE_INTERVAL = "weather_update_interval";
-
-        /**
-         * Use Metric measurements (celcius, km/h) for weather data
-         * @hide
-         */
-        public static final String WEATHER_USE_METRIC = "weather_use_metric";
-
-        /**
-         * Invert low/high temperature display
-         * @hide
-         */
-        public static final String WEATHER_INVERT_LOWHIGH = "weather_invert_lowhigh";
-
-        /**
-         * Whether to show the next calendar event
-         * @hide
-         */
-        public static final String LOCKSCREEN_CALENDAR = "lockscreen_calendar";
-
-        /**
-         * Whether to show the next calendar event's location
-         * @hide
-         */
-        public static final String LOCKSCREEN_CALENDAR_SHOW_LOCATION = "lockscreen_calendar_show_location";
-
-        /**
-         * Whether to show the next calendar event's description
-         * @hide
-         */
-        public static final String LOCKSCREEN_CALENDAR_SHOW_DESCRIPTION = "lockscreen_calendar_show_description";
-
-        /**
-         * Which calendars to look for events
-         * @hide
-         */
-        public static final String LOCKSCREEN_CALENDARS = "lockscreen_calendars";
-
-        /**
-         * How far in the future to look for events
-         * @hide
-         */
-        public static final String LOCKSCREEN_CALENDAR_LOOKAHEAD = "lockscreen_calendar_lookahead";
-
-        /**
-         * Whether to find only events with reminders
-         * @hide
-         */
-        public static final String LOCKSCREEN_CALENDAR_REMINDERS_ONLY = "lockscreen_calendar_reminders_only";
 
         /**
          * Show the pending notification counts as overlays on the status bar
@@ -2916,6 +2839,42 @@ public final class Settings {
          * @hide
          */
         public static final String SYSTEM_PROFILES_ENABLED = "system_profiles_enabled";
+
+        /**
+         * Whether the power menu reboot menu is enabled
+         * @hide
+         */
+        public static final String POWER_MENU_REBOOT_ENABLED = "power_menu_reboot_enabled";
+
+        /**
+         * Whether power menu screenshot is enabled
+         * @hide
+         */
+        public static final String POWER_MENU_SCREENSHOT_ENABLED = "power_menu_screenshot_enabled";
+
+        /**
+         * Whether power menu expanded desktop is enabled
+         * @hide
+         */
+        public static final String POWER_MENU_EXPANDED_DESKTOP_ENABLED = "power_menu_expanded_desktop_enabled";
+
+        /**
+         * Whether power menu profiles switcher is enabled
+         * @hide
+         */
+        public static final String POWER_MENU_PROFILES_ENABLED = "power_menu_profiles_enabled";
+
+        /**
+         * Whether power menu airplane toggle is enabled
+         * @hide
+         */
+        public static final String POWER_MENU_AIRPLANE_ENABLED = "power_menu_airplane_enabled";
+
+        /**
+         * Whether power menu silent mode is enabled
+         * @hide
+         */
+        public static final String POWER_MENU_SILENT_ENABLED = "power_menu_silent_enabled";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
@@ -2994,6 +2953,12 @@ public final class Settings {
             QUIET_HOURS_MUTE,
             QUIET_HOURS_STILL,
             QUIET_HOURS_DIM,
+            SYSTEM_PROFILES_ENABLED,
+            POWER_MENU_SCREENSHOT_ENABLED,
+            POWER_MENU_REBOOT_ENABLED,
+            POWER_MENU_PROFILES_ENABLED,
+            POWER_MENU_AIRPLANE_ENABLED,
+            POWER_MENU_SILENT_ENABLED,
         };
 
         // Settings moved to Settings.Secure
