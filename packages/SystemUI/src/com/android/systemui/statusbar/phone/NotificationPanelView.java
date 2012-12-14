@@ -16,7 +16,6 @@
 
 package com.android.systemui.statusbar.phone;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -32,12 +31,14 @@ import com.android.systemui.statusbar.GestureRecorder;
 
 public class NotificationPanelView extends PanelView {
 
-    Drawable mHandleBar;
-    float mHandleBarHeight;
-    View mHandleView;
-    int mFingers;
-    PhoneStatusBar mStatusBar;
-    boolean mOkToFlip;
+    private static final float STATUS_BAR_SETTINGS_FLIP_PERCENTAGE = 0.3f;
+
+    private Drawable mHandleBar;
+    private float mHandleBarHeight;
+    private View mHandleView;
+    private int mFingers;
+    private PhoneStatusBar mStatusBar;
+    private boolean mOkToFlip;
 
     public NotificationPanelView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -94,40 +95,36 @@ public class NotificationPanelView extends PanelView {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (PhoneStatusBar.SETTINGS_DRAG_SHORTCUT && mStatusBar.mHasFlipSettings) {
-            boolean shouldFlip = false;
-            ContentResolver cr = mContext.getContentResolver();
-
+            boolean flip = false;
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     mOkToFlip = getExpandedHeight() == 0;
-                    // If we have no notifications and the Power Widget is disabled, flip to the settings panel
-                    if(mStatusBar.skipToSettingsPanel()
-                            && Settings.System.getInt(cr, Settings.System.EXPANDED_VIEW_WIDGET, 0) == 0) {
-                        shouldFlip = true;
+                    if (event.getX(0) > getWidth() * (1.0f - STATUS_BAR_SETTINGS_FLIP_PERCENTAGE) &&
+                            Settings.System.getInt(getContext().getContentResolver(),
+                                    Settings.System.QS_QUICK_PULLDOWN, 0) != 0) {
+                        flip = true;
                     }
                     break;
                 case MotionEvent.ACTION_POINTER_DOWN:
-                    if (mOkToFlip) {
-                        float miny = event.getY(0);
-                        float maxy = miny;
-                        for (int i=1; i<event.getPointerCount(); i++) {
-                            final float y = event.getY(i);
-                            if (y < miny) miny = y;
-                            if (y > maxy) maxy = y;
-                        }
-                        if (maxy - miny < mHandleBarHeight) {
-                            shouldFlip = true;
-                        }
-                    }
+                    flip = true;
                     break;
             }
-            if(mOkToFlip && shouldFlip) {
-                if (getMeasuredHeight() < mHandleBarHeight) {
-                    mStatusBar.switchToSettings();
-                } else {
-                    mStatusBar.flipToSettings();
+            if (mOkToFlip && flip) {
+                float miny = event.getY(0);
+                float maxy = miny;
+                for (int i=1; i<event.getPointerCount(); i++) {
+                    final float y = event.getY(i);
+                    if (y < miny) miny = y;
+                    if (y > maxy) maxy = y;
                 }
-                mOkToFlip = false;
+                if (maxy - miny < mHandleBarHeight) {
+                    if (getMeasuredHeight() < mHandleBarHeight) {
+                        mStatusBar.switchToSettings();
+                    } else {
+                        mStatusBar.flipToSettings();
+                    }
+                    mOkToFlip = false;
+                }
             }
         }
         return mHandleView.dispatchTouchEvent(event);
