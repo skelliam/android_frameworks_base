@@ -201,6 +201,7 @@ public class PhoneStatusBar extends BaseStatusBar {
     View mFlipSettingsView;
     QuickSettingsContainerView mSettingsContainer;
     int mSettingsPanelGravity;
+    private TilesChangedObserver mTilesChangedObserver;
 
     // top bar
     View mNotificationPanelHeader;
@@ -633,6 +634,11 @@ public class PhoneStatusBar extends BaseStatusBar {
                 mQS.setService(this);
                 mQS.setBar(mStatusBarView);
                 mQS.setupQuickSettings();
+
+                // Start observing for changes
+                mTilesChangedObserver = new TilesChangedObserver(mHandler);
+                mTilesChangedObserver.startObserving();
+
             } else {
                 mQS = null; // fly away, be free
             }
@@ -2611,6 +2617,30 @@ public class PhoneStatusBar extends BaseStatusBar {
                 || (mDisabled & StatusBarManager.DISABLE_SEARCH) != 0;
     }
 
+    public boolean skipToSettingsPanel() {
+        if (mPile == null || mNotificationData == null) {
+            return false;
+        }
+
+        int N = mNotificationData.size();
+        for (int i = 0; i < N; i++) {
+            Entry ent = mNotificationData.get(N-i-1);
+            if(ent != null
+                    && ent.notification != null
+                    && notificationIsForCurrentUser(ent.notification)) {
+                switch(ent.notification.id) {
+                    // ignore adb icon
+                    case com.android.internal.R.drawable.stat_sys_adb:
+                        continue;
+                }
+                // We have at least one notification, we cannot skip
+                return false;
+            }
+        }
+        // No notifications for current user, lets skip to Settings panel
+        return true;
+    }
+
     private static class FastColorDrawable extends Drawable {
         private final int mColor;
 
@@ -2644,4 +2674,49 @@ public class PhoneStatusBar extends BaseStatusBar {
         public void setBounds(Rect bounds) {
         }
     }
+
+    /**
+     *  ContentObserver to watch for Quick Settings tiles changes
+     * @author dvtonder
+     *
+     */
+    private class TilesChangedObserver extends ContentObserver {
+        public TilesChangedObserver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            if (mSettingsContainer != null) {
+                // Refresh the container
+                mSettingsContainer.removeAllViews();
+                mQS.setupQuickSettings();
+                mSettingsContainer.requestLayout();
+            }
+        }
+
+        public void startObserving() {
+            final ContentResolver cr = mContext.getContentResolver();
+            cr.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.QUICK_SETTINGS_TILES),
+                    false, this);
+
+            cr.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.QS_DYNAMIC_ALARM),
+                    false, this);
+
+            cr.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.QS_DYNAMIC_BUGREPORT),
+                    false, this);
+
+            cr.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.QS_DYNAMIC_IME),
+                    false, this);
+
+            cr.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.QS_DYNAMIC_WIFI),
+                    false, this);
+        }
+    }
+
 }
