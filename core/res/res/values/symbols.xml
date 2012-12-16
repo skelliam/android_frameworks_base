@@ -1839,6 +1839,7 @@
   <java-symbol type="bool" name="config_show_cmIMESwitcher"/>
   <java-symbol type="bool" name="config_smsSamsungCdmaAlternateMessageIDEncoding" />
   <java-symbol type="bool" name="config_samsung_stk" />
+  <java-symbol type="integer" name="config_wallpaperMaxWidth" />
 
   <!-- Hardware Key ReMapping -->
   <java-symbol type="integer" name="config_deviceHardwareKeys" />
@@ -1882,5 +1883,7 @@
 
   <!-- Lockscreen -->
   <java-symbol type="bool" name="config_disableHomeUnlockSetting" />
+  <!-- Lock screen always show battery -->
+  <java-symbol type="string" name="lockscreen_discharging" />
 
 </resources>
