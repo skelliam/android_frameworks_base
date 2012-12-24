@@ -151,7 +151,6 @@ public class UsbDeviceManager {
     public UsbDeviceManager() {
         mContext = null;
         mContentResolver = null;
-        mCurrentSettings = null;
         mHasUsbAccessory = false;
     }
 
