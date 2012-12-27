@@ -117,6 +117,7 @@ public class LegacyUsbDeviceManager extends UsbDeviceManager {
         public void onChange(boolean selfChange) {
             boolean enable = (Settings.Secure.getInt(mContentResolver,
                     Settings.Secure.ADB_ENABLED, 0) > 0);
+            SystemProperties.set("persist.service.adb.enable", enable ? "1" : "0");
             mHandler.sendMessage(MSG_ENABLE_ADB, enable);
         }
     }
@@ -352,11 +353,9 @@ public class LegacyUsbDeviceManager extends UsbDeviceManager {
                 }
 
                 // register observer to listen for settings changes
-                if (!mHasUsbService) {
-                    mContentResolver.registerContentObserver(
+                mContentResolver.registerContentObserver(
                         Settings.Secure.getUriFor(Settings.Secure.ADB_ENABLED),
                         false, new AdbSettingsObserver());
-                }
 
                 mContentResolver.registerContentObserver(
                     Settings.Secure.getUriFor(Settings.Secure.ADB_NOTIFY),
